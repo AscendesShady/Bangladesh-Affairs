@@ -35,7 +35,7 @@ Opening `index.html` directly as a `file://` page will not enable data fetching 
 3. Under **Settings → Pages**, select **Deploy from a branch**, choose that branch and **/(root)**, then save.
 4. Open the HTTPS Pages URL after deployment completes. A project URL such as `https://YOUR-NAME.github.io/bangladesh-affairs/` works without changing asset paths.
 
-No build command, npm install, API key, CDN connection or paid service is required. `.nojekyll` is included. This package has been prepared and tested locally; it has not been pushed or publicly deployed.
+No build command, npm install, API key, CDN connection or paid service is required. `.nojekyll` is included. Source repository: [AscendesShady/Bangladesh-Affairs](https://github.com/AscendesShady/Bangladesh-Affairs).
 
 ## Install and use offline
 
@@ -47,7 +47,9 @@ The map, districts, GI list, community profiles, history, facts, font and origin
 
 - Select a district polygon, search the directory, or filter by division.
 - Change map layers to explore GI products, communities, places or nature.
-- Drag to pan; use + / −, pinch, or Ctrl + wheel to zoom. The target labels retain a consistent screen size. **District names** reveals a collision-aware subset; zoom to see more.
+- On touchscreens, move two fingers together to pan and spread or pinch them to zoom. One-finger dragging also pans the map; scroll the page outside the map.
+- On a trackpad, scroll with two fingers to pan horizontally or vertically; pinch to zoom. Mouse dragging and the + / − buttons remain available, with Ctrl + wheel for zoom.
+- Labels retain a consistent screen size. **District names** reveals a collision-aware subset; zoom to see more.
 - **Time history** steps through events. Dates are chronological, but event spacing is not proportional to elapsed years. The base map always uses modern districts.
 - Save study cards with the heart. All saved cards and explored progress stay in this browser; there is no sign-in or server-side storage.
 - **Syllabus** contains the transcribed text and both original images, with links to the corresponding study topics.
@@ -76,6 +78,7 @@ Maintainer checks in the working checkout:
 ```powershell
 node qa/validate.mjs
 node qa/browser.cjs
+node qa/touch.cjs
 ```
 
 The browser checker uses the bundled Codex Playwright runtime and installed Chrome; change its `require` path if running elsewhere. It starts an isolated temporary server and closes it after testing. `qa/build_data.py` uses Python, lxml and Pillow and requires the locally saved DPDT HTML snapshot; those research downloads are excluded from the public ZIP. The public app uses only its bundled runtime files.

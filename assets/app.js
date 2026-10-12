@@ -8,7 +8,7 @@ const state={tab:'map',layer:'districts',district:null,record:null,division:'',s
 const divisions=['Dhaka','Chattogram','Rajshahi','Khulna','Barishal','Sylhet','Rangpur','Mymensingh'];
 const colors={Dhaka:'#c0d7b0',Chattogram:'#b6cfaa',Rajshahi:'#ddcf9e',Khulna:'#afcdbc',Barishal:'#c5d9cd',Sylhet:'#a8c8b1',Rangpur:'#ced6a9',Mymensingh:'#d7debd'};
 const layerInfo={districts:['THE DISTRICT ATLAS','Bangladesh, district by district','District directory','64 districts'],gi:['ORIGIN & CRAFT','Products with a sense of place','GI product directory','64 registered products'],communities:['PEOPLE & CULTURE','A mosaic of communities','Community directory','20 community profiles'],places:['HERITAGE & CONNECTIONS','Places worth remembering','Place directory','12 heritage & infrastructure places'],nature:['LANDSCAPES & RESILIENCE','The geography of everyday life','Landscape directory','10 landscape anchors'],history:['THE HISTORY ATLAS','Follow the story through time','History stops','24 historical stops']};
-let data,geo,projection,path,zoom,featureByName,districtByName,playTimer,toastTimer,installPrompt;
+let data,geo,projection,path,zoom,featureByName,metricsByName,districtByName,playTimer,toastTimer,installPrompt;
 
 function sourceInfo(source){if(SOURCES[source])return SOURCES[source];const url=new URL(source);return {name:url.hostname==='en.banglapedia.org'?'Banglapedia · '+(url.searchParams.get('title')??'reference').replaceAll('_',' '):url.hostname.replace('www.','')+' · reference',url:source};}
 function sourceLink(source,label){const s=sourceInfo(source);return `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(label??s.name)} ↗</a>`;}
@@ -103,7 +103,7 @@ function setLayer(layer){
   $$('[data-layer]').forEach(b=>{b.classList.toggle('active',b.dataset.layer===layer);b.setAttribute('aria-pressed',String(b.dataset.layer===layer));});
   $('#timeline-panel').hidden=layer!=='history';
   $('#rivers-toggle').checked=layer==='nature';d3.select('#river-paths').style('display',layer==='nature'?null:'none');
-  $('#map-note').textContent=layer==='gi'?'Badges count district study associations. GI production areas may span several districts. Country-wide products are listed without a single location.':layer==='communities'?'Selected community profiles. District associations are examples of presence, not exclusive territories or exact settlement locations.':layer==='nature'?'Markers show landscape study locations. Hazard notes are qualitative; this map is not a risk model or a live warning service.':layer==='history'?'Historical events and heritage anchors are highlighted on 2020 district boundaries. This is not a reconstruction of historical borders.':'Select a district or marker to explore. Drag to pan, pinch to zoom, or use + / −. BBS / OCHA boundaries, 2020, via geoBoundaries.';
+  $('#map-note').textContent=layer==='gi'?'Badges count district study associations. GI production areas may span several districts. Country-wide products are listed without a single location.':layer==='communities'?'Selected community profiles. District associations are examples of presence, not exclusive territories or exact settlement locations.':layer==='nature'?'Markers show landscape study locations. Hazard notes are qualitative; this map is not a risk model or a live warning service.':layer==='history'?'Historical events and heritage anchors are highlighted on 2020 district boundaries. This is not a reconstruction of historical borders.':'Select a district or marker to explore. Move two fingers to pan; pinch to zoom. Trackpad scrolling pans; + / − zooms. BBS / OCHA boundaries, 2020, via geoBoundaries.';
   updateDistrictStyles();renderLegend();renderDirectory();renderMarkers();renderDetail();if(layer==='history')updateHistory(false);
 }
 function updateDistrictStyles(){
@@ -117,7 +117,7 @@ function renderMarkers(){
   const group=d3.select('#markers');group.selectAll('*').remove();let points=[];
   if(['gi','communities'].includes(state.layer)){
     const records=state.layer==='gi'?data.gi:data.communities;
-    for(const d of data.districtInfo){const rs=records.filter(r=>r.districts.includes(d.name)&&matchesSearch(r));if(rs.length&&divisionMatches(d))points.push({id:d.id,name:d.name,coords:path.centroid(featureByName.get(d.name)),count:rs.length,color:state.layer==='gi'?'#b77b31':'#916780',district:d.name});}
+    for(const d of data.districtInfo){const rs=records.filter(r=>r.districts.includes(d.name)&&matchesSearch(r));if(rs.length&&divisionMatches(d))points.push({id:d.id,name:d.name,coords:metricsByName.get(d.name).center,count:rs.length,color:state.layer==='gi'?'#b77b31':'#916780',district:d.name});}
   }else if(['places','nature'].includes(state.layer)){
     points=data.places.filter(p=>(state.layer==='nature'?p.kind==='Nature':p.kind!=='Nature')&&recordMatchesDivision(p)&&matchesSearch(p)).map(p=>({...p,coords:projection(p.coords),color:p.kind==='Nature'?'#277d76':p.kind==='Heritage'?'#d56750':'#bc7e32'}));
   }
@@ -139,16 +139,16 @@ function syncSymbols(){
   d3.selectAll('.marker').attr('transform',p=>`translate(${p.coords[0]},${p.coords[1]}) scale(${1/(k*ui)})`);
   const showDistricts=$('#labels').checked||k>2.2,boxes=[];
   const labels=d3.selectAll('.district-label');
-  const order=data.districtInfo.slice().sort((a,b)=>(b.name===state.district)-(a.name===state.district)||path.area(featureByName.get(b.name))-path.area(featureByName.get(a.name)));
+  const order=showDistricts?data.districtInfo.slice().sort((a,b)=>(b.name===state.district)-(a.name===state.district)||metricsByName.get(b.name).area-metricsByName.get(a.name).area):[];
   const visibility=new Set();
   if(showDistricts)for(const d of order){
     if(!divisionMatches(d))continue;
-    const c=path.centroid(featureByName.get(d.name)),x=(c[0]*k+state.transform.x-vb.x)*ui,y=(c[1]*k+state.transform.y-vb.y)*ui,w=d.name.length*5.4+10;
+    const c=metricsByName.get(d.name).center,x=(c[0]*k+state.transform.x-vb.x)*ui,y=(c[1]*k+state.transform.y-vb.y)*ui,w=d.name.length*5.4+10;
     if(x<15||x>vb.width*ui-15||y<15||y>vb.height*ui-15)continue;
     const box={l:x-w/2,r:x+w/2,t:y-8,b:y+8};
     if(d.name===state.district||!boxes.some(b=>box.l<b.r&&box.r>b.l&&box.t<b.b&&box.b>b.t)){visibility.add(d.name);boxes.push(box);}
   }
-  labels.attr('transform',d=>{const [x,y]=path.centroid(d);return `translate(${x},${y}) scale(${1/(k*ui)})`;}).attr('font-size',11).style('font-size','11px').style('display',d=>visibility.has(d.properties.name)?null:'none').classed('selected-label',d=>d.properties.name===state.district);
+  labels.attr('transform',d=>{const [x,y]=metricsByName.get(d.properties.name).center;return `translate(${x},${y}) scale(${1/(k*ui)})`;}).attr('font-size',11).style('font-size','11px').style('display',d=>visibility.has(d.properties.name)?null:'none').classed('selected-label',d=>d.properties.name===state.district);
   d3.selectAll('.division-label').attr('transform',d=>{const [x,y]=projection(d.coords);return `translate(${x},${y}) scale(${1/(k*ui)})`;}).style('font-size',`${ui<.6?10:12}px`).style('display',showDistricts||state.layer!=='districts'? 'none':null);
 }
 function initMap(){
@@ -157,6 +157,8 @@ function initMap(){
   for(const f of geo.features)if(d3.geoArea(f)>2*Math.PI){const polys=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;for(const p of polys)for(const ring of p)ring.reverse();}
   projection=d3.geoMercator().fitExtent([[105,35],[740,583]],geo);path=d3.geoPath(projection);
   featureByName=new Map(geo.features.map(f=>[f.properties.name,f]));districtByName=new Map(data.districtInfo.map(d=>[d.name,d]));
+  // Projection stays fixed during gestures; only the parent SVG transform changes.
+  metricsByName=new Map(geo.features.map(f=>[f.properties.name,{center:path.centroid(f),area:path.area(f)}]));
   const world=d3.select('#geography');
   world.append('g').attr('id','district-paths').selectAll('path').data(geo.features).join('path').attr('class','district').attr('d',path).attr('fill',d=>colors[districtByName.get(d.properties.name).division]).attr('tabindex',0).attr('role','button').attr('aria-label',d=>`${d.properties.name} district, ${districtByName.get(d.properties.name).division} division`).on('click',(e,d)=>{e.stopPropagation();selectDistrict(d.properties.name);}).on('keydown',(e,d)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectDistrict(d.properties.name);}}).on('pointermove',(e,d)=>showTooltip(e,d.properties.name+' · '+districtByName.get(d.properties.name).bn)).on('pointerleave',hideTooltip);
   world.append('defs').append('clipPath').attr('id','country-clip').append('path').attr('d',path(geo));
@@ -165,8 +167,21 @@ function initMap(){
   world.append('g').attr('aria-hidden','true').selectAll('text').data(geo.features).join('text').attr('class','district-label').text(d=>d.properties.name);
   const anchors=[['Rangpur',89.09,25.76],['Rajshahi',88.86,24.58],['Mymensingh',90.22,24.91],['Sylhet',91.66,24.80],['Dhaka',90.09,23.86],['Khulna',89.14,22.96],['Barishal',90.30,22.47],['Chattogram',91.91,23.01]].map(([name,x,y])=>({name,coords:[x,y]}));
   world.append('g').attr('aria-hidden','true').selectAll('text').data(anchors).join('text').attr('class','division-label').text(d=>d.name.toUpperCase());
-  zoom=d3.zoom().scaleExtent([1,9]).extent([[0,0],[850,640]]).translateExtent([[-150,-100],[1000,750]]).filter(e=>(e.type!=='wheel'||e.ctrlKey)&&(!e.button||e.type==='wheel')).on('zoom',e=>{state.transform=e.transform;world.attr('transform',e.transform);hideTooltip();syncSymbols();});
+  // Bind touch handlers explicitly, including on hybrid computers whose device
+  // detection can omit them. D3 tracks both fingers for pinch and midpoint pan.
+  zoom=d3.zoom().touchable(()=>true).scaleExtent([1,9]).extent([[0,0],[850,640]]).translateExtent([[-150,-100],[1000,750]]).filter(e=>(e.type!=='wheel'||e.ctrlKey)&&(!e.button||e.type==='wheel')).on('zoom',e=>{state.transform=e.transform;world.attr('transform',e.transform);hideTooltip();syncSymbols();});
   d3.select('#map').call(zoom).on('dblclick.zoom',null);
+  // Trackpad two-finger scrolling arrives as ordinary wheel deltas; pinch
+  // arrives as Ctrl+wheel and stays with D3's zoom handler above.
+  $('#map').addEventListener('wheel',event=>{
+    if(event.ctrlKey)return;
+    const svg=event.currentTarget,matrix=svg.getScreenCTM();if(!matrix)return;
+    event.preventDefault();
+    const units=event.deltaMode===1?16:event.deltaMode===2?svg.getBoundingClientRect().height:1;
+    const inverse=matrix.inverse(),dx=event.deltaX*units,dy=event.deltaY*units;
+    const x=dx*inverse.a+dy*inverse.c,y=dx*inverse.b+dy*inverse.d;
+    d3.select(svg).call(zoom.translateBy,-x/state.transform.k,-y/state.transform.k);
+  },{passive:false});
   $('#zoom-in').addEventListener('click',()=>d3.select('#map').call(zoom.scaleBy,1.5));$('#zoom-out').addEventListener('click',()=>d3.select('#map').call(zoom.scaleBy,1/1.5));$('#zoom-reset').addEventListener('click',()=>applyTransform(d3.zoomIdentity));$('#labels').addEventListener('change',syncSymbols);
   $('#rivers-toggle').addEventListener('change',e=>d3.select('#river-paths').style('display',e.target.checked?null:'none'));
   new ResizeObserver(syncSymbols).observe($('#map'));

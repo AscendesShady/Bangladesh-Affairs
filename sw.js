@@ -1,4 +1,4 @@
-const VERSION='v1.0.2';
+const VERSION='v1.0.3';
 // Prefix includes the deployment scope so unrelated GitHub Pages apps keep their caches.
 const PREFIX='bangladesh-affairs:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
