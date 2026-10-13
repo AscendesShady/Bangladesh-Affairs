@@ -4,6 +4,8 @@
 
 All seven map datasets and study content are embedded in one minified script. HTML, two stylesheets, the Bengali font, images, and required licence files are the remaining packaged assets. Source files are transformed for Android during packaging; the website source stays intact.
 
+The Android layout removes promotional hero blocks, enlarges touch controls, brings the map onto the initial phone screen, and puts map/detail panels alongside each other on tablets. Rotation preserves the current view and history stop. Responsive checks cover phone portrait/landscape and tablet portrait/landscape; native tests use phone and large-tablet logical screen sizes.
+
 For a Windows rebuild, run `bootstrap_tools.py`, install build-only `esbuild@0.28.2` and `d3@7.9.0` under `.android-build/js-tools`, then run `build_apk.py` with Python. The scripts use portable verified tools and do not install system software. Build and test tooling is ignored by Git and excluded from `dist/`.
 
 Keep `.android-build/signing/bangladesh-affairs.jks` and its password file private and backed up if you want future APKs to update the installed app. They are not inside the APK or repository. The isolated CI verification generates its own temporary signing key and tests the same app source with native Android instrumentation. The local APK's v2/v3 signatures and alignment are checked independently.

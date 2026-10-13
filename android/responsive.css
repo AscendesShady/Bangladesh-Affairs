@@ -1,0 +1,97 @@
+/* Touch-first layout shared by a 6-inch phone and a large Android tablet. */
+body { font-size: 15px; background-attachment: scroll; }
+main { max-width: 1800px; padding: 0 20px 24px; }
+.app-header { max-width: 1760px; width: calc(100% - 40px); margin: 8px auto 12px; padding: 8px 14px; }
+button, input:not([type=checkbox]):not([type=range]), select, summary { min-height: 48px; }
+.header-actions .icon-btn { width: 48px; height: 48px; min-height: 48px; }
+.app-header, .tabs, .layer-tabs button, .map-controls button, .label-toggle { backdrop-filter: none; -webkit-backdrop-filter: none; background-color: #f4f9f5; }
+.atlas-toolbar { margin: 0 0 10px; }
+.layer-tabs button { min-height: 48px; padding: 10px 14px; font-size: 14px; }
+.map-top { padding: 12px 16px 8px; }
+#layer-kicker { display: none; }
+.map-top h3 { font-size: 21px; margin: 0; }
+.map-count { font-size: 12px; }
+.map-filters { padding: 0 16px 8px; }
+.map-filters input, .map-filters select, .facts-tools input { font-size: 16px; }
+.map-area svg { min-height: 300px; max-height: calc(100vh - 270px); }
+.map-controls button { width: 48px; height: 48px; font-size: 24px; }
+.map-options { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; }
+.label-toggle { position: static; min-height: 48px; padding: 8px 10px; font-size: 12px; margin: 0; }
+.label-toggle input { min-height: 0; }
+.map-options #clear { margin-left: auto; padding: 8px; font-size: 13px; }
+.map-legend { font-size: 12px; }
+.map-footnote { font-size: 12px; }
+.overview-art { display: none; }
+.directory-item { min-height: 56px; }
+.directory-item strong { font-size: 16px; }
+.directory-item small { font-size: 13px; }
+.directory { max-height: 480px; }
+.save-btn { min-width: 48px; min-height: 48px; }
+.fact-card-top .eyebrow { overflow-wrap: anywhere; }
+.timeline-controls button { width: 48px; height: 48px; flex-shrink: 0; }
+.timeline-heading { flex-wrap: wrap; gap: 8px; }
+#timeline-slider { min-height: 48px; background-size: 100% 8px; background-repeat: no-repeat; background-position: center; }
+.facts-tools { margin-top: 4px; }
+.syllabus-banner { margin-top: 4px; }
+dialog { max-height: 88vh; }
+@media(min-width:768px) {
+  .app-header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 12px; }
+  .brand { grid-column: 1; }
+  .tabs { order: 0; grid-column: 2; width: auto; justify-self: center; }
+  .header-actions { order: 0; grid-column: 3; }
+  .tabs button { font-size: 13px; padding: 8px 12px; min-height: 48px; }
+  .brand h1 { font-size: 20px; }
+  .atlas-grid { grid-template-columns: minmax(0,1fr) minmax(260px,28%); gap: 16px; }
+  .explore-panel { min-width: 0; }
+  .map-filters { flex-wrap: nowrap; }
+  .map-filters .search-field { flex-basis: auto; min-width: 0; }
+  .map-filters > label:last-child { flex: 0 0 auto; max-width: 150px; }
+  .facts-layout { grid-template-columns: 210px minmax(0,1fr); gap: 20px; }
+  .fact-grid { grid-template-columns: minmax(0,1fr); }
+  .syllabus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(min-width:1100px) {
+  .facts-layout { grid-template-columns: 240px minmax(0,1fr); }
+  .fact-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .directory { max-height: calc(100vh - 300px); }
+}
+@media(max-width:700px) {
+  main { padding: 0 12px 20px; }
+  .app-header { width: calc(100% - 24px); margin: 4px auto 8px; padding: 6px 10px; }
+  .brand img { width: 34px; height: 34px; }
+  .brand h1 { font-size: 18px; }
+  .brand-bn { font-size: 11px; }
+  .atlas-toolbar { width: 100%; gap: 0; margin-bottom: 8px; }
+  .layer-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; width: 100%; }
+  .layer-tabs button { font-size: 12px; padding: 6px 5px; line-height: 1.2; }
+  .map-top { padding: 7px 12px; }
+  .map-top h3 { font-size: 18px; }
+  .map-count { padding: 4px 7px; font-size: 11px; }
+  .map-filters { padding: 0 10px 6px; gap: 6px; }
+  .map-filters > label:last-child { max-width: 116px; }
+  .map-filters input { font-size: 14px; }
+  .map-filters select { font-size: 13px; padding: 6px; }
+  .map-area svg { min-height: 240px; max-height: calc(100vh - 340px); }
+  .map-controls { top: 8px; left: 8px; gap: 6px; }
+  .map-controls button { width: 48px; height: 48px; }
+  .map-options { padding: 8px; gap: 6px; }
+  .label-toggle { font-size: 11px; padding: 7px 8px; }
+  .map-options #clear { font-size: 12px; }
+  .directory { max-height: 330px; }
+  .tabs { bottom: 8px; }
+  .tabs button { font-size: 11px; }
+  .fact-card { padding: 18px; }
+  .fact-card > p, .recall { font-size: 15px; line-height: 1.7; }
+  #topic-filters button { font-size: 13px; min-height: 44px; }
+  footer { padding-bottom: 96px; }
+}
+@media(orientation:landscape) and (max-height:500px) {
+  .app-header { margin: 4px auto 6px; padding: 5px 10px; }
+  .brand-bn { display: none; }
+  .brand img { width: 32px; height: 32px; }
+  .brand h1 { font-size: 17px; }
+  .atlas-grid { grid-template-columns: minmax(0,1fr); }
+  .layer-tabs { display: flex; flex-wrap: nowrap; width: 100%; overflow-x: auto; }
+  .layer-tabs button { flex: 0 0 auto; }
+  .map-area svg { height: 210px; min-height: 210px; max-height: 210px; aspect-ratio: auto; }
+}

@@ -27,7 +27,23 @@ const root=path.resolve(__dirname,'../.android-build/assets/app');
   await page.locator('[data-tab=syllabus]').click();check(await page.locator('.syllabus-card').count()===14,'Both syllabi, 14 topics');await page.locator('.source-images summary').click();check(await page.locator('.source-images img').evaluateAll(xs=>xs.every(x=>x.complete&&x.naturalWidth>0)),'Original syllabus images included');
   check(await page.evaluate(()=>document.fonts.check('16px AtlasBangla')),'Bengali font available');check(!requests.some(u=>/\.geojson|\.json|sw\.js|manifest/.test(u)),'No data fetch, service worker or manifest requests');
   check(errors.length===0,'No packaged runtime errors');
-  await page.locator('[data-tab=map]').click();await page.locator('[data-layer=districts]').click();await page.locator('#clear').click();await page.screenshot({path:path.resolve(__dirname,'../.android-build/apk-webview-preview.png'),fullPage:true});
+  await page.locator('[data-tab=map]').click();await page.locator('[data-layer=districts]').click();await page.locator('#clear').click();
+  for(const [width,height] of [[320,640],[390,844],[844,390],[800,1280],[1280,800],[1600,1000]]){
+   await page.setViewportSize({width,height});
+   for(const tab of ['map','facts','syllabus']){
+    await page.locator(`[data-tab=${tab}]`).click();
+    check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${tab} fits ${width}x${height}`);
+   }
+   await page.locator('[data-tab=map]').click();await page.evaluate(()=>scrollTo(0,0));
+   check(await page.locator('[data-layer]').evaluateAll(xs=>xs.every(x=>x.getBoundingClientRect().height>=44)),`Touch targets ${width}x${height}`);
+   const layout=await page.evaluate(()=>{const map=document.querySelector('#map-card')||document.querySelector('.map-card'),rail=document.querySelector('.explore-panel'),a=map.getBoundingClientRect(),b=rail.getBoundingClientRect();return {side:b.left>=a.right-2,sameRow:Math.abs(a.top-b.top)<2,top:document.querySelector('#map').getBoundingClientRect().top};});
+   if(width>=768&&height>500)check(layout.side&&layout.sameRow,`Tablet map and details share width at ${width}x${height}`);
+   else check(!layout.side,`Phone details stack at ${width}x${height}`);
+   await page.screenshot({path:path.resolve(__dirname,`../.android-build/layout-${width}x${height}.png`),fullPage:false});
+   if(layout.top>=310)console.log(await page.evaluate(()=>Object.fromEntries(['.app-header','.atlas-toolbar','.map-top','.map-filters','#map'].map(s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return [s,{top:r.top,height:r.height,width:r.width}];}))));
+   check(layout.top<310,`Map appears without a promotional hero ${width}x${height}`);
+  }
+  check(errors.length===0,'No responsive runtime errors');
   fs.writeFileSync(path.resolve(__dirname,'../.android-build/web-results.json'),JSON.stringify({checks:checks.length,results:checks,requests,errors},null,2));console.log(checks.length+' APK web-content checks passed without a website or data downloads.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

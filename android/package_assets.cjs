@@ -11,13 +11,29 @@ app=replace(app,/  const names=\['districts'[\s\S]*?  data=Object\.fromEntries\(
 app=app.replace(/,installPrompt;/,';').replace(/ target="_blank"/g,'');
 app=app.replace('phone.addEventListener(\'change\',placeNavigation);','if(phone.addEventListener)phone.addEventListener(\'change\',placeNavigation);else phone.addListener(placeNavigation);');
 app=app.replace("new ResizeObserver(()=>requestAnimationFrame(syncGlassNavigation)).observe($('.tabs'));","if(window.ResizeObserver)new ResizeObserver(()=>requestAnimationFrame(syncGlassNavigation)).observe($('.tabs'));else window.addEventListener('resize',syncGlassNavigation);");
-app=app.replace("new ResizeObserver(syncSymbols).observe($('#map'));","if(window.ResizeObserver)new ResizeObserver(syncSymbols).observe($('#map'));else window.addEventListener('resize',syncSymbols);");
+app=app.replace("new ResizeObserver(syncSymbols).observe($('#map'));","if(window.ResizeObserver)new ResizeObserver(()=>requestAnimationFrame(syncSymbols)).observe($('#map'));else window.addEventListener('resize',syncSymbols);");
 app=replace(app,/  const reducedMotion=matchMedia\('[\s\S]*?  \},\{passive:true\}\);\n/,'','mouse-only light tracking');
 app=app.replace('This app works offline; external reference links do not.','All study content is included in this app. External references open in your browser.');
+app=app.replace('stored only in this browser','stored only on this device').replace('Your browser could not save progress','This app could not save progress');
+app=replace(app,/  \$\('#fact-total'\)\.textContent=FACTS\.length;\n/,'','duplicated hero fact counter');
+app=replace(app,/ui=svg\.getBoundingClientRect\(\)\.width\/vb\.width\|\|1;/,'ui=Math.abs(svg.getScreenCTM()?.a)||svg.getBoundingClientRect().width/vb.width||1;','screen-sized map labels');
+app=app.replace('w=d.name.length*5.4+10','w=d.name.length*(narrow?6.2:7.2)+10');
+app=app.replace(".style('font-size','11px')",".style('font-size',`${narrow?12:14}px`)");
+app=app.replace("`${ui<.6?10:12}px`","`${narrow?12:14}px`");
+const shortTitles={'Bangladesh, district by district':'Bangladesh districts','Products with a sense of place':'GI products','A mosaic of communities':'Communities','Places worth remembering':'Important places','The geography of everyday life':'Nature & hazards','Follow the story through time':'History timeline'};
+for(const [before,after] of Object.entries(shortTitles))app=app.split(before).join(after);
 app=app.replace(/Reconnect and use Reload app to retry\./g,'Use Reload app to retry.').replace(/Reconnect and use Reload app below to refresh its files\./g,'Use Reload app below to try again.');
 const data={};
 for(const name of ['districts','district-info','gi','communities','places','metadata','rivers'])data[name.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=JSON.parse(read(`assets/data/${name}.${['districts','rivers'].includes(name)?'geojson':'json'}`));
 let html=read('index.html');
+html=replace(html,/<div class="intro">[\s\S]*?(?=\s*<div class="atlas-toolbar">)/,'','map promotional hero');
+html=replace(html,/<div class="intro">[\s\S]*?(?=<div class="facts-tools">)/,'','facts promotional hero');
+html=replace(html,/<div class="intro">[\s\S]*?(?=<div class="syllabus-banner">)/,'','syllabus promotional hero');
+html=html.replace('Bangladesh, district by district','Bangladesh districts');
+const options=html.match(/<div class="map-options">[\s\S]*?<\/div>/)[0];
+const reset=html.match(/<button id="clear"[\s\S]*?<\/button>/)[0];
+html=html.replace(options,'').replace(reset,'');
+html=html.replace('<div id="map-legend"',options.replace(/<\/div>$/,reset+'</div>')+'<div id="map-legend"');
 html=html.replace(/  <link rel="(?:manifest|icon|apple-touch-icon)"[^\n]*\n/g,'').replace(/  <meta name="apple-mobile-web-app-capable"[^\n]*\n/g,'');
 html=replace(html,/<button id="install"[\s\S]*?<\/button>/,'','install button');
 html=replace(html,/<span id="connection"[^>]*>[\s\S]*?<\/span>/,'','connection indicator');
@@ -30,7 +46,7 @@ html=replace(html,/  <script>\n[\s\S]*?  <\/script>\n/,`  <script>
       const timer=setTimeout(show,15000);
       window.addEventListener('atlas-ready',()=>{clearTimeout(timer);alert.hidden=true;});
       window.addEventListener('atlas-error',()=>{clearTimeout(timer);show();});
-      window.addEventListener('error',()=>{clearTimeout(timer);show();},true);
+      window.addEventListener('error',event=>{if(event.error||event.target instanceof HTMLScriptElement){clearTimeout(timer);show();}},true);
       for(const id of ['reload-app','recovery-retry'])document.getElementById(id).addEventListener('click',()=>location.reload());
     })();
   </script>\n`,'service-worker bootstrap');
@@ -46,6 +62,7 @@ fs.mkdirSync(path.join(out,'assets'),{recursive:true});fs.writeFileSync(path.joi
 for(const file of ['assets/style.css','assets/glass.css','assets/fonts/bangla.woff2','assets/fonts/OFL.txt','assets/icons/icon-192.png','assets/vendor/d3-LICENSE.txt','sources/bangladesh-affairs-syllabus.png','sources/geography-environment-syllabus.png']){
  const dest=path.join(out,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,file),dest);
 }
+for(const file of ['assets/style.css','assets/glass.css'])fs.writeFileSync(path.join(out,file),read(file).replace(/dvh/g,'vh')+(file.endsWith('glass.css')?'\n'+read('android/responsive.css'):''));
 fs.copyFileSync(path.join(root,'LICENSE'),path.join(out,'LICENSE'));
 const packages=new Set();for(const [input,details] of Object.entries(Object.values(result.metafile.outputs)[0].inputs)){if(details.bytesInOutput>0){const match=input.replace(/\\/g,'/').match(/node_modules\/(d3[^/]*)\//);if(match)packages.add(match[1]);}}
 const credits=[read('assets/vendor/d3-LICENSE.txt')];for(const name of [...packages].sort()){const license=path.join(root,'.android-build/js-tools/node_modules',name,'LICENSE');if(fs.existsSync(license))credits.push(name+'\n'+fs.readFileSync(license,'utf8'));}

@@ -3,6 +3,7 @@ package bd.affairs.offline;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -118,6 +119,7 @@ public final class MainActivity extends Activity {
         });
     }
     @Override public void onPause() { webView.onPause(); super.onPause(); }
+    @Override public void onConfigurationChanged(Configuration configuration) { super.onConfigurationChanged(configuration);webView.requestApplyInsets(); }
     @Override public void onResume() { super.onResume(); if (webView != null) webView.onResume(); }
     @Override public void onDestroy() { webView.destroy(); super.onDestroy(); }
 }
