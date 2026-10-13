@@ -78,10 +78,16 @@ The application was checked in installed Chrome with a fresh browser profile. Au
 
 Visual review covered desktop map, mobile map/history and the facts layout. Actual publication and actual operating-system installation are separate user actions; neither is implied by local readiness checks.
 
-Final results: **761 static checks** and **198 Chrome checks passed**. Chrome's manifest parser and `Page.getInstallabilityErrors` reported no errors in a temporary non-incognito profile. All **21 cache requests** completed, and both root and project-path service-worker registrations were verified. The public release has **26 files**, with byte-for-byte folder/ZIP parity verified by `qa/package.py`.
+Current results: **762 static checks**, **198 Chrome regression checks**, **51 native touch checks** and **42 glass-layout/accessibility checks** passed. Chrome's manifest parser and `Page.getInstallabilityErrors` reported no errors in a temporary non-incognito profile. All **22 cache requests** completed, and both root and project-path service-worker registrations were verified. The public release has **27 files**, with byte-for-byte folder/ZIP parity verified by `qa/package.py`.
 
 ### Touch update — 13 October 2026
 
 Two-finger touchscreen pan and pinch zoom are explicitly enabled on touch and hybrid devices. Trackpad wheel input pans horizontally and vertically; Ctrl+wheel pinch input zooms. The 1×–9× bounds and existing mouse/button controls are preserved. District areas and centroids are calculated once for the fixed projection, reducing repeated geometry work during gestures. Offline cache version: `v1.0.3`.
 
 **51 touch checks** using Chrome's native touch-input emulation and wheel input passed across all six map layers, including inward/outward pinch, horizontal/vertical pan, page-zoom prevention, gesture cancellation and zoom bounds. The 761 static checks and 198 regression checks also passed. These checks use browser emulation rather than a physical phone or trackpad.
+
+### Liquid-glass design update — 13 October 2026
+
+Design reference: [sdegenaar/liquid_glass_widgets](https://github.com/sdegenaar/liquid_glass_widgets). The original web adaptation uses translucent navigation and controls, bright rims, soft shadows and spring-like press transitions; reading cards stay opaque. Reference code and media are not included in the release.
+
+Phone navigation is isolated from the blurred header so it remains fixed to the viewport. Glass-slider fill tracks the selected historical stop. Reduced-motion and increased-contrast settings disable animation or translucency; an unsupported-blur fallback stays usable. New stylesheet: `assets/glass.css`; offline cache version: `v1.1.0`. Layout and indicator alignment were tested at 320, 390, 768 and 1440 pixels, with desktop and phone screenshots visually reviewed.

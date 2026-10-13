@@ -25,6 +25,47 @@ function setTab(tab,updateHash=true){
   if(tab!=='map')stopPlay();
   if(tab==='map'&&data)requestAnimationFrame(syncSymbols);
   if(updateHash&&location.hash!==`#${tab}`)history.replaceState(null,'',`#${tab}`);
+  requestAnimationFrame(syncGlassNavigation);
+}
+function syncGlassNavigation(){
+  const nav=$('.tabs'),active=nav.querySelector('[data-tab].active');if(!active)return;
+  nav.style.setProperty('--tab-x',`${active.offsetLeft}px`);
+  nav.style.setProperty('--tab-width',`${active.offsetWidth}px`);
+}
+function initGlassControls(){
+  // Keep the fixed phone dock outside the blurred header: backdrop-filter
+  // would otherwise make that header the dock's fixed-position container.
+  const nav=$('.tabs'),home=document.createComment('desktop navigation position');
+  nav.before(home);
+  const phone=matchMedia('(max-width:700px)');
+  const placeNavigation=()=>{
+    if(phone.matches)document.body.append(nav);
+    else home.parentNode.insertBefore(nav,home.nextSibling);
+    requestAnimationFrame(syncGlassNavigation);
+  };
+  phone.addEventListener('change',placeNavigation);placeNavigation();
+  new ResizeObserver(()=>requestAnimationFrame(syncGlassNavigation)).observe($('.tabs'));
+  document.fonts.ready.then(syncGlassNavigation);
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  let pending=0,target,point;
+  document.addEventListener('pointermove',event=>{
+    if(event.pointerType!=='mouse'||reducedMotion.matches)return;
+    const surface=event.target.closest?.('.tabs,.layer-tabs button,.install');if(!surface)return;
+    target=surface;point=[event.clientX,event.clientY];
+    if(pending)return;
+    pending=requestAnimationFrame(()=>{
+      pending=0;const rect=target.getBoundingClientRect();
+      if(!rect.width||!rect.height)return;
+      target.style.setProperty('--light-x',`${Math.max(0,Math.min(100,(point[0]-rect.left)/rect.width*100))}%`);
+      target.style.setProperty('--light-y',`${Math.max(0,Math.min(100,(point[1]-rect.top)/rect.height*100))}%`);
+    });
+  },{passive:true});
+  $('#timeline-slider').addEventListener('input',updateGlassSlider);
+  updateGlassSlider();
+}
+function updateGlassSlider(){
+  const slider=$('#timeline-slider'),progress=(Number(slider.value)-Number(slider.min))/(Number(slider.max)-Number(slider.min))*100;
+  slider.style.setProperty('--history-progress',`${progress}%`);
 }
 $$('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 window.addEventListener('hashchange',()=>setTab(location.hash.slice(1),false));
@@ -194,6 +235,7 @@ function stopPlay(){clearInterval(playTimer);playTimer=null;$('#timeline-play').
 function updateHistory(clearSelection=true){
   if(clearSelection){state.district=null;state.record=null;}
   const e=TIMELINE[state.history];$('#timeline-slider').value=state.history;$('#timeline-slider').setAttribute('aria-valuetext',`${e.date}: ${e.title}`);$('#timeline-date').textContent=e.date;$('#timeline-prev').disabled=state.history===0;$('#timeline-next').disabled=state.history===TIMELINE.length-1;
+  updateGlassSlider();
   updateDistrictStyles();renderDetail();renderDirectory();
 }
 $('#timeline-slider').addEventListener('input',e=>{stopPlay();state.history=Number(e.target.value);updateHistory();});
@@ -260,7 +302,7 @@ async function initPWA(){
   if(!('serviceWorker' in navigator)||!window.isSecureContext){$('#offline-status').textContent='Use HTTPS or localhost for offline access';return;}
   try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;$('#offline-status').textContent='Offline ready · map & study content saved';registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)toast('An app update is ready. Close and reopen to refresh.');});});navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OFFLINE_READY')$('#offline-status').textContent='Offline ready · map & study content saved';});}catch(error){$('#offline-status').textContent='Offline caching unavailable · retry online';console.warn('Service worker:',error.message);}
 }
-initFacts();initSources();setTab(location.hash.slice(1)||'map',false);
+initFacts();initSources();initGlassControls();setTab(location.hash.slice(1)||'map',false);
 try{
   const names=['districts','district-info','gi','communities','places','metadata','rivers'];
   const results=await Promise.all(names.map(async name=>{const response=await fetch(`./assets/data/${name}.${['districts','rivers'].includes(name)?'geojson':'json'}`);if(!response.ok)throw new Error(`${name}: HTTP ${response.status}`);return response.json();}));

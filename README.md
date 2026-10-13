@@ -10,6 +10,7 @@ A buildless HTML, CSS and JavaScript study atlas, ready for GitHub Pages. The ap
 - 91 source-linked study cards across the 14 topics in the two supplied syllabus images.
 - Bengali topic titles and recall cues, saved cards, explored-district progress and 12 practice questions.
 - Offline PWA caching, local Bengali font, installable Chrome manifest and responsive layouts.
+- Liquid-glass navigation, frosted controls, a floating phone dock and opaque study cards for clear reading.
 
 ## Preview locally
 
@@ -68,6 +69,7 @@ The images supply nine Bangladesh affairs topics (25 marks) and five geography/e
 - `assets/data/*.json`: district profiles, GI products, communities, places and provenance.
 - `assets/data/districts.geojson`: district geometry; `rivers.geojson`: generalized major waterways.
 - `assets/app.js` / `assets/style.css`: interactions and appearance.
+- `assets/glass.css`: glass surfaces, pill navigation, slider styling and reduced-motion/contrast fallbacks.
 - `manifest.webmanifest`: app identity and installation metadata.
 - `sw.js`: offline core file list and version.
 
@@ -79,11 +81,14 @@ Maintainer checks in the working checkout:
 node qa/validate.mjs
 node qa/browser.cjs
 node qa/touch.cjs
+node qa/glass.cjs
 ```
 
 The browser checker uses the bundled Codex Playwright runtime and installed Chrome; change its `require` path if running elsewhere. It starts an isolated temporary server and closes it after testing. `qa/build_data.py` uses Python, lxml and Pillow and requires the locally saved DPDT HTML snapshot; those research downloads are excluded from the public ZIP. The public app uses only its bundled runtime files.
 
 ## Licences
+
+The visual design is inspired by [sdegenaar/liquid_glass_widgets](https://github.com/sdegenaar/liquid_glass_widgets). This is an original web adaptation of its navigation-and-controls approach, using CSS blur, rim highlights and press transitions. The Flutter library, native refraction shaders and reference screenshots are not bundled.
 
 - Original application code and icon artwork: MIT, see `LICENSE`.
 - District boundaries: BBS / OCHA ROAP via geoBoundaries, **CC BY 3.0 IGO**. Attribution and source URLs are preserved in the app and source notes.
