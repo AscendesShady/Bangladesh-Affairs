@@ -4,9 +4,10 @@ import hashlib, json, os, secrets, shutil, subprocess, zipfile
 ROOT=Path(__file__).resolve().parents[1]
 BUILD=ROOT/'.android-build'; BUILD.mkdir(exist_ok=True)
 paths=json.loads((BUILD/'tools/paths.json').read_text())
+paths={k:str(Path(v) if Path(v).is_absolute() else ROOT/v) for k,v in paths.items()}
 def run(*args):
     subprocess.run([str(a) for a in args],cwd=ROOT,check=True)
-run('node','android/package_assets.cjs')
+run(paths.get('node','node'),'android/package_assets.cjs')
 resources=BUILD/'res';shutil.copytree(ROOT/'android/res',resources,dirs_exist_ok=True)
 (resources/'drawable').mkdir(exist_ok=True)
 shutil.copy2(ROOT/'assets/icons/icon-512.png',resources/'drawable/app_icon.png')
@@ -34,7 +35,7 @@ password=signing/'password.txt';key=signing/'bangladesh-affairs.jks'
 if not key.exists():
     password.write_text(secrets.token_urlsafe(32))
     run(paths['keytool'],'-genkeypair','-keystore',key,'-alias','bangladesh-affairs','-storetype','PKCS12','-storepass:file',password,'-keypass:file',password,'-keyalg','RSA','-keysize','3072','-validity','10000','-dname','CN=Bangladesh Affairs, O=Bangladesh Affairs, C=BD')
-DIST=ROOT/'dist';DIST.mkdir(exist_ok=True)
+DIST=ROOT.parent if ROOT.name=='Reproduce' else ROOT/'dist';DIST.mkdir(exist_ok=True)
 apk=DIST/'Bangladesh-Affairs.apk'
 run(paths['java'],'-jar',paths['apksignerJar'],'sign','--ks',key,'--ks-key-alias','bangladesh-affairs','--ks-pass','file:'+str(password),'--v1-signing-enabled','false','--v2-signing-enabled','true','--v3-signing-enabled','true','--v4-signing-enabled','false','--out',apk,aligned)
 run(paths['java'],'-jar',paths['apksignerJar'],'verify','--verbose','--print-certs',apk)

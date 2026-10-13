@@ -2,6 +2,7 @@
 from pathlib import Path
 import json, subprocess, zipfile
 ROOT=Path(__file__).resolve().parents[1];BUILD=ROOT/'.android-build';paths=json.loads((BUILD/'tools/paths.json').read_text())
+paths={k:str(Path(v) if Path(v).is_absolute() else ROOT/v) for k,v in paths.items()}
 def run(*args):subprocess.run([str(a) for a in args],cwd=ROOT,check=True)
 test=BUILD/'native-tests';test.mkdir(exist_ok=True);classes=test/'classes';classes.mkdir(exist_ok=True)
 run(paths['javac'],'--release','8','-classpath',paths['androidJar'],'-d',classes,*list((ROOT/'android/test/src').rglob('*.java')))
