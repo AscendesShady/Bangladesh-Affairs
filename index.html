@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="./assets/glass.css">
   <title>Bangladesh affairs</title>
 </head>
-<body>
+<body data-release="1.1.1">
   <a class="skip" href="#main">Skip to content</a>
   <header class="app-header">
     <a class="brand" href="#map" aria-label="Bangladesh affairs home"><img src="./assets/icons/icon-192.png" alt="" width="44" height="44"><span><span class="brand-bn" lang="bn">বাংলাদেশ বিষয়াবলি</span><h1>Bangladesh affairs<span class="brand-dot">.</span></h1></span></a>
@@ -21,6 +21,8 @@
     <div class="header-actions"><span id="connection" class="status">● Online</span><button id="install" class="install">Install app <span aria-hidden="true">↗</span></button><button id="about" class="icon-btn" aria-label="Sources and app information">i</button></div>
   </header>
   <main id="main">
+    <div id="app-recovery" role="alert" hidden style="padding:18px;margin:16px 0;background:#fff5db;border:1px solid #c9a64a;border-radius:16px;color:#253a2b"><p id="recovery-message">The atlas could not load. Reconnect, then reload the app.</p><button id="recovery-retry" type="button">Reload app</button></div>
+    <noscript><p>The interactive atlas requires JavaScript. Enable JavaScript in your browser and reload this page.</p></noscript>
     <section id="map-view" class="view" aria-label="Bangladesh map atlas">
       <div class="intro"><div><p class="eyebrow"><span></span> AN INTERACTIVE STUDY ATLAS</p><h2>One country. <em>Countless connections.</em></h2><p>Explore the places, people and stories that make Bangladesh.</p></div><div class="intro-stats"><div><strong>64</strong><span>districts</span></div><div><strong>8</strong><span>divisions</span></div><div><strong>64</strong><span>GI products¹</span></div></div></div>
       <div class="atlas-toolbar"><div id="layers" class="layer-tabs" aria-label="Map layers"><button data-layer="districts" class="active" aria-pressed="true">Districts</button><button data-layer="gi" aria-pressed="false">GI products</button><button data-layer="communities" aria-pressed="false">Communities</button><button data-layer="places" aria-pressed="false">Places</button><button data-layer="nature" aria-pressed="false">Nature & hazards</button><button data-layer="history" aria-pressed="false">Time history</button></div><button id="clear" class="text-btn">Reset view ↺</button></div>
@@ -40,11 +42,52 @@
     <section id="facts-view" class="view" hidden aria-label="Bangladesh facts library"><div class="intro"><div><p class="eyebrow"><span></span> CONNECT THE FACTS</p><h2>A little context. <em>A lasting memory.</em></h2><p>Study Bangladesh affairs, geography, environment and disaster management.</p></div><div class="intro-stats"><div><strong id="fact-total">—</strong><span>study cards</span></div><div><strong>14</strong><span>syllabus topics</span></div></div></div><div class="facts-tools"><label class="search-field"><span aria-hidden="true">⌕</span><input type="search" id="facts-search" placeholder="Search facts in English or বাংলা…" aria-label="Search study facts"></label><button id="saved-only" aria-pressed="false">♡ Saved <span id="saved-count">0</span></button><button id="practice" class="primary">Quick practice →</button></div><div class="facts-layout"><aside class="topic-sidebar"><p class="eyebrow">EXPLORE BY TOPIC</p><div id="topic-filters"></div></aside><div><div class="results-heading"><h3 id="facts-heading">All Bangladesh facts</h3><span id="facts-count"></span></div><div id="fact-cards" class="fact-grid"></div><p id="facts-empty" class="empty" hidden>No matching facts. Try a broader search, another topic, or turn off Saved.</p></div></div></section>
     <section id="syllabus-view" class="view" hidden aria-label="Transcribed image syllabi"><div class="intro"><div><p class="eyebrow"><span></span> YOUR STUDY ROADMAP</p><h2>The syllabus. <em>Made explorable.</em></h2><p>The contents of both supplied images, with links into the study library.</p></div></div><div class="syllabus-banner"><div><strong lang="bn">বাংলাদেশ বিষয়াবলি</strong><span>Bangladesh affairs · <b>25 marks</b></span></div><div><strong lang="bn">ভূগোল (বাংলাদেশ ও বিশ্ব), পরিবেশ ও দুর্যোগ ব্যবস্থাপনা</strong><span>Geography, environment & disaster management · <b>10 marks</b></span></div></div><div class="syllabus-note">The images define the topic coverage; they do not provide an exam year or an issuing authority. These marks are transcribed from the images.</div><div id="syllabus-cards" class="syllabus-grid"></div><details class="source-images"><summary>View your original syllabus images</summary><div><figure><img src="./sources/bangladesh-affairs-syllabus.png" alt="User-supplied Bangladesh affairs syllabus, nine topics and 25 marks"><figcaption>Image 1 · Bangladesh affairs</figcaption></figure><figure><img src="./sources/geography-environment-syllabus.png" alt="User-supplied geography, environment and disaster management syllabus, five topics and 10 marks"><figcaption>Image 2 · Geography, environment and disasters</figcaption></figure></div></details></section>
   </main>
-  <footer><span>Bangladesh affairs <b>·</b> A map for making connections.</span><span id="offline-status">Preparing offline access…</span><button class="text-btn" data-action="sources">Sources & about</button></footer>
+  <footer><span>Bangladesh affairs <b>·</b> A map for making connections.</span><span id="offline-status">Preparing offline access…</span><button id="reload-app" class="text-btn" type="button">Reload app</button><button class="text-btn" data-action="sources">Sources & about</button></footer>
   <dialog id="sources-dialog"><div class="dialog-heading"><div><p class="eyebrow">REFERENCE DESK</p><h2>Sources & map notes</h2></div><button class="icon-btn" data-close aria-label="Close sources">×</button></div><div id="sources-content"></div></dialog>
   <dialog id="install-dialog"><div class="dialog-heading"><h2>Install Bangladesh affairs</h2><button class="icon-btn" data-close aria-label="Close installation help">×</button></div><p>On Chrome, open this app over HTTPS (or localhost), then choose <b>Install Bangladesh affairs</b> from the address bar or Chrome menu → <b>Cast, save and share → Install page as app</b>.</p><p>On Android, choose <b>Install app</b> or <b>Add to Home screen</b> in Chrome’s menu. The browser decides when an installation prompt is available.</p><p>After the first complete load, the map and study library work offline. Source websites require a connection.</p><div id="install-state" class="callout"></div></dialog>
   <dialog id="quiz-dialog"><div class="dialog-heading"><div><p class="eyebrow">ACTIVE RECALL</p><h2>Quick practice</h2></div><button class="icon-btn" data-close aria-label="Close practice">×</button></div><div id="quiz-content"></div></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
+  <script>
+    // Keep recovery independent of app.js so a failed script cannot leave an endless loader.
+    (()=>{
+      const scope=new URL('./',location.href).href,alert=document.getElementById('app-recovery');
+      let ready=false,repairing=false,timer;
+      const show=message=>{document.getElementById('recovery-message').textContent=message;alert.hidden=false;};
+      async function repair(){
+        if(repairing)return;
+        if(!navigator.onLine){show('You are offline. Reconnect before reloading the app; your saved offline content is still available.');return;}
+        repairing=true;show('Reloading the app. Your saved cards and explored districts will stay saved.');
+        try{
+          if('serviceWorker' in navigator){
+            const registrations=await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.filter(r=>r.scope===scope).map(r=>r.unregister()));
+          }
+          if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('bangladesh-affairs:'+scope+':')).map(k=>caches.delete(k)));}
+          const url=new URL(location.href);url.searchParams.delete('repair');url.searchParams.set('_reload',Date.now());location.replace(url.href);
+        }catch(error){repairing=false;show('Reloading was unavailable. Reconnect and try Reload app again.');console.warn('App recovery:',error.message);}
+      }
+      document.getElementById('reload-app').addEventListener('click',repair);
+      document.getElementById('recovery-retry').addEventListener('click',repair);
+      if(new URL(location.href).searchParams.get('repair')==='1'){repair();return;}
+      timer=setTimeout(()=>{if(!ready)show('The atlas is taking too long to load. Check your connection, then use Reload app to retry.');},20000);
+      window.addEventListener('atlas-ready',()=>{ready=true;clearTimeout(timer);alert.hidden=true;});
+      window.addEventListener('atlas-error',()=>{clearTimeout(timer);show('The atlas could not load. Reconnect, then use Reload app to refresh its files.');});
+      window.addEventListener('error',event=>{if(!ready&&(event.target instanceof HTMLScriptElement||event.error)){clearTimeout(timer);show('The atlas could not load. Reconnect, then use Reload app to refresh its files.');}},true);
+      const status=document.getElementById('offline-status');
+      if(!('serviceWorker' in navigator)||!window.isSecureContext){status.textContent='Use HTTPS or localhost for offline access';return;}
+      let controller=navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        if(controller&&!repairing){location.reload();return;}
+        controller=navigator.serviceWorker.controller;
+      });
+      navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='OFFLINE_READY')status.textContent='Offline ready · map & study content saved';});
+      navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).then(registration=>{
+        // Check on every opening; offline failure must not prevent the cached app from starting.
+        registration.update().catch(()=>{});
+        navigator.serviceWorker.ready.then(()=>{status.textContent='Offline ready · map & study content saved';});
+      }).catch(error=>{status.textContent='Offline caching unavailable · retry online';console.warn('Service worker:',error.message);});
+    })();
+  </script>
   <script src="./assets/vendor/d3.min.js"></script>
   <script type="module" src="./assets/app.js"></script>
 </body>

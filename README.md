@@ -73,7 +73,9 @@ The images supply nine Bangladesh affairs topics (25 marks) and five geography/e
 - `manifest.webmanifest`: app identity and installation metadata.
 - `sw.js`: offline core file list and version.
 
-When runtime content changes, increment `VERSION` in `sw.js`, keep its core file list complete, and deploy the changed files together. Existing users should close all app windows/tabs and reopen to activate a waiting update. Cache names are scoped to the deployment URL so other Pages apps on the same host retain their own caches.
+When runtime content changes, increment `VERSION` in `sw.js` and `data-release` in `index.html`, keep the core file list complete, and deploy the changed files together. The worker caches a complete release before activating; controlled tabs reload once on an update. Navigation uses that release's cached HTML so it matches the scripts. Cache names are scoped to the deployment URL so other Pages apps on the same host retain their own caches.
+
+If a browser stays on Loading, use **Reload app** while online, or open [the recovery link](https://ascendesshady.github.io/Bangladesh-Affairs/?repair=1). Recovery refreshes only this app's offline cache and worker; saved cards, explored progress and other apps' caches are retained. Startup failures expose a recovery message even if the main script fails.
 
 Maintainer checks in the working checkout:
 
@@ -82,6 +84,7 @@ node qa/validate.mjs
 node qa/browser.cjs
 node qa/touch.cjs
 node qa/glass.cjs
+node qa/loading.cjs
 ```
 
 The browser checker uses the bundled Codex Playwright runtime and installed Chrome; change its `require` path if running elsewhere. It starts an isolated temporary server and closes it after testing. `qa/build_data.py` uses Python, lxml and Pillow and requires the locally saved DPDT HTML snapshot; those research downloads are excluded from the public ZIP. The public app uses only its bundled runtime files.

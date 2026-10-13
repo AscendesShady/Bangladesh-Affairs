@@ -3,7 +3,7 @@ import {TOPICS,FACTS,TIMELINE,SOURCES,QUIZ} from './content.js';
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const storage={get(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}},set(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{toast('Your browser could not save progress. You can still explore.');}}};
+const storage={get(key,fallback){try{const value=JSON.parse(localStorage.getItem(key));return Array.isArray(fallback)&&!Array.isArray(value)?fallback:value??fallback;}catch{return fallback;}},set(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{toast('Your browser could not save progress. You can still explore.');}}};
 const state={tab:'map',layer:'districts',district:null,record:null,division:'',search:'',topic:'all',factSearch:'',savedOnly:false,history:9,transform:d3.zoomIdentity,saved:new Set(storage.get('ba-saved',[])),explored:new Set(storage.get('ba-explored',[]))};
 const divisions=['Dhaka','Chattogram','Rajshahi','Khulna','Barishal','Sylhet','Rangpur','Mymensingh'];
 const colors={Dhaka:'#c0d7b0',Chattogram:'#b6cfaa',Rajshahi:'#ddcf9e',Khulna:'#afcdbc',Barishal:'#c5d9cd',Sylhet:'#a8c8b1',Rangpur:'#ced6a9',Mymensingh:'#d7debd'};
@@ -298,15 +298,11 @@ window.addEventListener('online',updateConnection);window.addEventListener('offl
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#install').textContent='Install app ↗';});
 window.addEventListener('appinstalled',()=>{installPrompt=null;$('#install').textContent='Installed ✓';toast('Bangladesh affairs installed.');});
 $('#install').addEventListener('click',async()=>{if(installPrompt){const p=installPrompt;installPrompt=null;await p.prompt();await p.userChoice;}else{$('#install-state').textContent=matchMedia('(display-mode: standalone)').matches?'You are already using the installed app.':!window.isSecureContext?'Installation and offline caching require HTTPS or localhost.':'If the app is already installed, Chrome may offer “Open in app” instead. The installation option can vary by Chrome version.';openDialog('#install-dialog');}});
-async function initPWA(){
-  if(!('serviceWorker' in navigator)||!window.isSecureContext){$('#offline-status').textContent='Use HTTPS or localhost for offline access';return;}
-  try{const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;$('#offline-status').textContent='Offline ready · map & study content saved';registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)toast('An app update is ready. Close and reopen to refresh.');});});navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='OFFLINE_READY')$('#offline-status').textContent='Offline ready · map & study content saved';});}catch(error){$('#offline-status').textContent='Offline caching unavailable · retry online';console.warn('Service worker:',error.message);}
-}
 initFacts();initSources();initGlassControls();setTab(location.hash.slice(1)||'map',false);
 try{
   const names=['districts','district-info','gi','communities','places','metadata','rivers'];
   const results=await Promise.all(names.map(async name=>{const response=await fetch(`./assets/data/${name}.${['districts','rivers'].includes(name)?'geojson':'json'}`);if(!response.ok)throw new Error(`${name}: HTTP ${response.status}`);return response.json();}));
   data=Object.fromEntries(names.map((n,i)=>[n.replace(/-([a-z])/g,(_,c)=>c.toUpperCase()),results[i]]));
   state.saved=new Set([...state.saved].filter(id=>FACTS.some(f=>f.id===id)));state.explored=new Set([...state.explored].filter(n=>data.districtInfo.some(d=>d.name===n)));
-  $('#explored-count').textContent=`${state.explored.size} / 64 districts explored`;initMap();initPWA();
-}catch(error){$('#map-loading').textContent='The atlas could not load. Serve this folder over HTTP/HTTPS and retry.';$('#map-loading').setAttribute('role','alert');$('#detail').innerHTML='<div class="detail-card"><div class="detail-body"><h2>Atlas unavailable</h2><p>The map data could not be loaded. Reconnect and reload, or start the local server described in README.</p></div></div>';console.error(error);}
+  $('#explored-count').textContent=`${state.explored.size} / 64 districts explored`;initMap();window.dispatchEvent(new Event('atlas-ready'));
+}catch(error){$('#map-loading').textContent='The atlas could not load. Reconnect and use Reload app to retry.';$('#map-loading').setAttribute('role','alert');$('#detail').innerHTML='<div class="detail-card"><div class="detail-body"><h2>Atlas unavailable</h2><p>The map data could not be loaded. Reconnect and use Reload app below to refresh its files.</p></div></div>';window.dispatchEvent(new Event('atlas-error'));console.error(error);}
