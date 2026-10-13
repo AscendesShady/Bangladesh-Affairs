@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public final class OfflineTests extends Instrumentation {
     private WebView web; private Activity activity; private int checks; private boolean verifyColdSaved;
-    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments);verifyColdSaved="true".equals(arguments.getString("verifyColdSaved"));start(); }
+    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments);verifyColdSaved=arguments!=null&&"true".equals(arguments.getString("verifyColdSaved"));start(); }
     private WebView find(View view) {
         if(view instanceof WebView)return (WebView)view;
         if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++){WebView result=find(group.getChildAt(i));if(result!=null)return result;}}
