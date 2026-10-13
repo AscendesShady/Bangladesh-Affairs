@@ -2,6 +2,7 @@
 from pathlib import Path
 import json, os, subprocess, time
 ROOT=Path(__file__).resolve().parents[1];BUILD=ROOT/'.android-build';info=json.loads((BUILD/'emulator-process.json').read_text());adb=info['adb'];serial=info['serial']
+apk=ROOT.parent/'Bangladesh-Affairs.apk' if ROOT.name=='Reproduce' else ROOT/'dist/Bangladesh-Affairs.apk'
 assert serial=='emulator-5580','Unexpected target device'
 def command(*args,timeout=120,check=True):
  result=subprocess.run([adb,'-s',serial,*map(str,args)],capture_output=True,text=True,timeout=timeout)
@@ -21,7 +22,7 @@ screen=os.environ.get('NATIVE_SCREEN','phone')
 if screen=='tablet':command('shell','wm','size','1920x1200');command('shell','wm','density','240')
 else:command('shell','wm','size','780x1688');command('shell','wm','density','320')
 time.sleep(2)
-print(command('install','-r',ROOT/'dist/Bangladesh-Affairs.apk'),flush=True)
+print(command('install','-r',apk),flush=True)
 print(command('install','-r',BUILD/'native-tests/tests.apk'),flush=True)
 command('shell','svc','wifi','disable',check=False);command('shell','svc','data','disable',check=False)
 command('logcat','-c')
@@ -45,5 +46,5 @@ command('shell','am','start','-n','bd.affairs.offline/.MainActivity')
 time.sleep(10)
 image=subprocess.run([adb,'-s',serial,'exec-out','screencap','-p'],capture_output=True,check=True).stdout
 (BUILD/'android-offline-preview.png').write_bytes(image)
-(BUILD/'native-results.json').write_text(json.dumps({'screen':screen,'offline':True,'installedReleaseApk':str(ROOT/'dist/Bangladesh-Affairs.apk'),'instrumentation':result,'coldInstrumentation':cold,'consoleErrors':errors,'coldRestartPerformed':True},indent=2))
+(BUILD/'native-results.json').write_text(json.dumps({'screen':screen,'offline':True,'installedReleaseApk':str(apk),'instrumentation':result,'coldInstrumentation':cold,'consoleErrors':errors,'coldRestartPerformed':True},indent=2))
 print('Native offline Android verification completed.',flush=True)

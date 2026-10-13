@@ -43,4 +43,7 @@ run(paths['zipalign'],'-c','4',apk)
 run(paths['aapt2'],'dump','badging',apk)
 result={'apk':str(apk),'bytes':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'minAndroid':'8.0','permissions':[],'websiteRequired':False,'signingKey':str(key)}
 (BUILD/'apk-results.json').write_text(json.dumps(result,indent=2))
+for intermediate in [unsigned,assembled,aligned]:
+    assert intermediate.resolve().is_relative_to(BUILD.resolve())
+    intermediate.unlink(missing_ok=True)
 print(json.dumps(result,indent=2))
