@@ -11,3 +11,5 @@ qa/preview-*.txt
 qa/chrome-profile-*/
 github-pages/
 /bangladesh-affairs-github-pages/
+/_site/
+/node_modules/

@@ -1,5 +1,7 @@
 # Bangladesh affairs
 
+[Open Bangladesh affairs](https://ascendesshady.github.io/Bangladesh-Affairs/) · [Deployment checks](https://github.com/AscendesShady/Bangladesh-Affairs/actions/workflows/pages.yml)
+
 A buildless HTML, CSS and JavaScript study atlas, ready for GitHub Pages. The app includes:
 
 - All 64 district boundaries and profiles, grouped into eight divisions.
@@ -33,8 +35,10 @@ Opening `index.html` directly as a `file://` page will not enable data fetching 
 
 1. Extract `bangladesh-affairs-github-pages.zip` and upload its **contents** to a GitHub repository. `index.html`, `sw.js` and `manifest.webmanifest` must be at the repository root, alongside `assets/` and `sources/`.
 2. Commit the files to the repository's main branch.
-3. Under **Settings → Pages**, select **Deploy from a branch**, choose that branch and **/(root)**, then save.
-4. Open the HTTPS Pages URL after deployment completes. A project URL such as `https://YOUR-NAME.github.io/bangladesh-affairs/` works without changing asset paths.
+3. For this repository, **Settings → Pages → Source** uses **GitHub Actions**. The checked-in `pages.yml` workflow runs the content, browser, touch, layout and startup checks before uploading only the public app files. It then deploys and tests the actual published assets, loading, recovery and offline use in fresh desktop and phone Chrome.
+4. Open [the exact HTTPS Pages URL](https://ascendesshady.github.io/Bangladesh-Affairs/) after the **Verify and deploy Bangladesh Affairs** run finishes successfully. The path is case-sensitive: `/Bangladesh-Affairs/` matches this repository name. After unpublishing, run this workflow again using **Actions → Verify and deploy Bangladesh Affairs → Run workflow** to restore the site.
+
+For a manual ZIP upload to another repository, **Deploy from a branch → main → /(root)** remains supported; use that repository's exact Pages URL. The committed app needs no runtime build or remote dependencies.
 
 No build command, npm install, API key, CDN connection or paid service is required. `.nojekyll` is included. Source repository: [AscendesShady/Bangladesh-Affairs](https://github.com/AscendesShady/Bangladesh-Affairs).
 
