@@ -17,8 +17,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class OfflineTests extends Instrumentation {
-    private WebView web; private Activity activity; private int checks;
-    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments);start(); }
+    private WebView web; private Activity activity; private int checks; private boolean verifyColdSaved;
+    @Override public void onCreate(Bundle arguments) { super.onCreate(arguments);verifyColdSaved="true".equals(arguments.getString("verifyColdSaved"));start(); }
     private WebView find(View view) {
         if(view instanceof WebView)return (WebView)view;
         if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++){WebView result=find(group.getChildAt(i));if(result!=null)return result;}}
@@ -33,7 +33,7 @@ public final class OfflineTests extends Instrumentation {
     private void dom(String expression,String label) throws Exception {check("true".equals(js(expression)),label);}
     private void waitForMap() throws Exception {
         long end=SystemClock.uptimeMillis()+90000;
-        while(SystemClock.uptimeMillis()<end){if("true".equals(js("document.querySelectorAll('.district').length===64&&document.querySelector('#map-loading').hidden")))return;Thread.sleep(500);}
+        while(SystemClock.uptimeMillis()<end){if("true".equals(js("(function(){var loading=document.querySelector('#map-loading');var recovery=document.querySelector('#app-recovery');return document.body&&!document.body.hasAttribute('data-native-old-document')&&document.querySelectorAll('.district').length===64&&loading&&loading.hidden&&recovery&&recovery.hidden;})()")))return;Thread.sleep(500);}
         throw new AssertionError("Native app stayed on Loading");
     }
     private void event(final long down,final int action,final float[][] points) {
@@ -59,13 +59,14 @@ public final class OfflineTests extends Instrumentation {
             Intent launch=getTargetContext().getPackageManager().getLaunchIntentForPackage("bd.affairs.offline");launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);activity=startActivitySync(launch);
             runOnMainSync(new Runnable(){@Override public void run(){web=find(activity.findViewById(android.R.id.content));}});
             check(web!=null,"Native WebView created");waitForMap();
+            if(verifyColdSaved)dom("JSON.parse(localStorage.getItem('ba-saved')||'[]').indexOf('fact-1')>=0","Saved cards survive a cold process restart");
             check(getTargetContext().checkCallingOrSelfPermission("android.permission.INTERNET")==PackageManager.PERMISSION_DENIED,"APK has no internet permission");
             dom("document.querySelectorAll('.district').length===64","64 districts render from APK");
             dom("document.querySelector('#app-recovery').hidden","No startup error");
             dom("!document.querySelector('#install')&&!document.querySelector('link[rel=manifest]')","Website installer removed");
             js("document.querySelector('#directory [data-district=Dhaka]').click();");dom("document.querySelector('#detail h2').textContent==='Dhaka'","District detail opens");
             js("document.querySelector('[data-tab=facts]').click();");dom("document.querySelectorAll('.fact-card').length===91","91 facts render offline");
-            js("document.querySelector('[data-save=\"fact-1\"]').click();");dom("JSON.parse(localStorage.getItem('ba-saved')).indexOf('fact-1')>=0","Save card on device");
+            js("var save=document.querySelector('[data-save=\"fact-1\"]');if(save.getAttribute('aria-pressed')!=='true')save.click();");dom("JSON.parse(localStorage.getItem('ba-saved')).indexOf('fact-1')>=0","Save card on device");
             js("document.querySelector('[data-tab=syllabus]').click();");dom("document.querySelectorAll('.syllabus-card').length===14","14 syllabus topics");
             dom("Array.from(document.querySelectorAll('.source-images img')).every(function(i){return i.complete&&i.naturalWidth>0;})","Original images bundled");
             dom("document.fonts.check('16px AtlasBangla')","Bengali font bundled");
@@ -76,7 +77,7 @@ public final class OfflineTests extends Instrumentation {
             js("document.querySelector('[data-layer=districts]').click();document.querySelector('#clear').click();");pinch();
             js("document.querySelector('#zoom-reset').click();document.querySelector('#about').click();");dom("document.querySelector('#sources-dialog').open","Source notes open");
             runOnMainSync(new Runnable(){@Override public void run(){activity.onBackPressed();}});Thread.sleep(300);dom("!document.querySelector('#sources-dialog').open","Android Back closes dialog");
-            js("location.reload();");waitForMap();dom("JSON.parse(localStorage.getItem('ba-saved')).indexOf('fact-1')>=0","Saved progress survives native reload");
+            js("document.body.setAttribute('data-native-old-document','1');location.reload();");waitForMap();dom("JSON.parse(localStorage.getItem('ba-saved')).indexOf('fact-1')>=0","Saved progress survives native reload");
             dom("document.querySelector('#map-loading').hidden&&document.querySelector('#app-recovery').hidden","Offline reload completes");
             result.putString("stream",checks+" native Android checks passed, without internet permission.\n");result.putInt("checks",checks);finish(Activity.RESULT_OK,result);
         } catch(Throwable error){result.putString("stream","FAILED after "+checks+" checks: "+error.toString()+"\n");android.util.Log.e("BangladeshAffairsQA","FAILED",error);finish(Activity.RESULT_CANCELED,result);}

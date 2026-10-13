@@ -49,6 +49,7 @@ jobs:
             dist/Bangladesh-Affairs.apk
             .android-build/native-results.json
             .android-build/native-test-output.txt
+            .android-build/native-cold-test-output.txt
             .android-build/native-test-log.txt
             .android-build/android-offline-preview.png
           retention-days: 7

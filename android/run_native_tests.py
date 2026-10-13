@@ -28,12 +28,18 @@ print(result,flush=True)
 logs=command('logcat','-d','-s','BangladeshAffairs:E','BangladeshAffairsQA:I')
 (BUILD/'native-test-log.txt').write_text(logs)
 assert 'INSTRUMENTATION_CODE: -1' in result and 'native Android checks passed' in result,logs
+command('shell','am','force-stop','bd.affairs.offline')
+print('Verifying a cold process restart with the saved card still on device.',flush=True)
+cold=command('shell','am','instrument','-w','-e','verifyColdSaved','true','bd.affairs.offline.tests/bd.affairs.offline.tests.OfflineTests',timeout=300)
+(BUILD/'native-cold-test-output.txt').write_text(cold);print(cold,flush=True)
+assert 'INSTRUMENTATION_CODE: -1' in cold and 'native Android checks passed' in cold,cold
+logs=command('logcat','-d','-s','BangladeshAffairs:E','BangladeshAffairsQA:I');(BUILD/'native-test-log.txt').write_text(logs)
 errors=[line for line in logs.splitlines() if ' E BangladeshAffairs:' in line]
 assert not errors,'Native JavaScript errors: '+str(errors)
 command('shell','am','force-stop','bd.affairs.offline')
 command('shell','am','start','-n','bd.affairs.offline/.MainActivity')
-time.sleep(3)
+time.sleep(10)
 image=subprocess.run([adb,'-s',serial,'exec-out','screencap','-p'],capture_output=True,check=True).stdout
 (BUILD/'android-offline-preview.png').write_bytes(image)
-(BUILD/'native-results.json').write_text(json.dumps({'offline':True,'installedReleaseApk':str(ROOT/'dist/Bangladesh-Affairs.apk'),'instrumentation':result,'consoleErrors':errors,'coldRestartPerformed':True},indent=2))
+(BUILD/'native-results.json').write_text(json.dumps({'offline':True,'installedReleaseApk':str(ROOT/'dist/Bangladesh-Affairs.apk'),'instrumentation':result,'coldInstrumentation':cold,'consoleErrors':errors,'coldRestartPerformed':True},indent=2))
 print('Native offline Android verification completed.',flush=True)
