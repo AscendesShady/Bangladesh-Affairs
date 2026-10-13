@@ -13,3 +13,5 @@ github-pages/
 /bangladesh-affairs-github-pages/
 /_site/
 /node_modules/
+/.android-build/
+/dist/

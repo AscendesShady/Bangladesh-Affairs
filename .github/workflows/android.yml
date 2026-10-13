@@ -1,0 +1,54 @@
+name: Verify standalone Android APK
+on:
+  push:
+    branches: [codex/android-offline-apk]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build the offline APK and its temporary native tests
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
+          npm install --prefix .android-build/js-tools --no-save --package-lock=false esbuild@0.28.2 d3@7.9.0
+          python3 android/configure_ci.py
+          python3 android/build_apk.py
+          python3 android/build_test_apk.py
+      - name: Enable acceleration only in this disposable runner
+        run: sudo chmod 666 /dev/kvm
+      - name: Test Android with networking disabled
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: default
+          emulator-port: 5580
+          ram-size: 1536M
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
+          disable-animations: true
+          script: python3 android/run_native_tests.py
+      - name: Save native test evidence and the tested APK
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: standalone-android-verification
+          include-hidden-files: true
+          path: |
+            dist/Bangladesh-Affairs.apk
+            .android-build/native-results.json
+            .android-build/native-test-output.txt
+            .android-build/native-test-log.txt
+            .android-build/android-offline-preview.png
+          retention-days: 7

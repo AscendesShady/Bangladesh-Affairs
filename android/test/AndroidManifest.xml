@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="bd.affairs.offline.tests">
+  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="36" />
+  <application android:label="Bangladesh Affairs tests" />
+  <instrumentation android:name="bd.affairs.offline.tests.OfflineTests" android:targetPackage="bd.affairs.offline" android:functionalTest="true" />
+</manifest>
