@@ -1,8 +1,8 @@
-const VERSION='v1.1.1';
+const VERSION='v1.2.1';
 // Prefix includes the deployment scope so unrelated GitHub Pages apps keep their caches.
 const PREFIX='bangladesh-affairs:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
-const CORE=['./','./index.html','./assets/style.css','./assets/glass.css','./assets/app.js','./assets/content.js','./assets/vendor/d3.min.js','./assets/vendor/d3-LICENSE.txt','./assets/data/districts.geojson','./assets/data/rivers.geojson','./assets/data/district-info.json','./assets/data/gi.json','./assets/data/communities.json','./assets/data/places.json','./assets/data/metadata.json','./assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/fonts/bangla.woff2','./assets/fonts/OFL.txt','./manifest.webmanifest','./sources/bangladesh-affairs-syllabus.png','./sources/geography-environment-syllabus.png'];
+const CORE=["./","./index.html","./assets/offline.js","./assets/style.css","./assets/glass.css","./assets/fonts/bangla.woff2","./assets/fonts/OFL.txt","./assets/icons/icon-192.png","./assets/icons/icon-512.png","./assets/vendor/d3-LICENSE.txt","./manifest.webmanifest","./sources/bangladesh-affairs-syllabus.png","./sources/geography-environment-syllabus.png"];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{
   const cache=await caches.open(CACHE);
   // Bypass the HTTP cache when assembling a release, then activate only a complete shell.

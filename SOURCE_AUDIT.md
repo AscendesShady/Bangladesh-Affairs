@@ -101,3 +101,8 @@ The Reload app control and `?repair=1` entry link refresh only this deployment's
 ## Publishing verification · 13 October 2026
 
 After the site was unpublished, the public HTML and script URLs returned HTTP 404 while GitHub still reported the previous branch build as successful. Publishing now uses the repository's `pages.yml` workflow: local-app checks gate deployment, staging includes only 26 public files plus `deployment.json`, which records the commit and SHA-256 hashes. The manual ZIP retains `.nojekyll`; Actions deploys an already-built static artifact and its upload action excludes dotfiles. `qa/live.cjs` checks public responses and byte hashes before testing the map, facts, recovery, saved progress and offline reload in fresh desktop and phone Chrome. A cached installed app cannot substitute for this direct network verification. The README now links to the exact case-sensitive project URL and the workflow that restores an unpublished site.
+
+
+## Self-contained distribution · 14 October 2026
+
+This distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.2.1. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.
