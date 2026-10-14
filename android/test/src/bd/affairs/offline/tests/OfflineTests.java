@@ -43,6 +43,19 @@ public final class OfflineTests extends Instrumentation {
         for(int i=0;i<points.length;i++){properties[i]=new MotionEvent.PointerProperties();properties[i].id=i;properties[i].toolType=MotionEvent.TOOL_TYPE_FINGER;coords[i]=new MotionEvent.PointerCoords();coords[i].x=points[i][0];coords[i].y=points[i][1];coords[i].pressure=1;coords[i].size=0.1f;}
         runOnMainSync(new Runnable(){@Override public void run(){MotionEvent event=MotionEvent.obtain(down,SystemClock.uptimeMillis(),action,points.length,properties,coords,0,0,1,1,0,0,InputDevice.SOURCE_TOUCHSCREEN,0);web.dispatchTouchEvent(event);event.recycle();}});
     }
+    private void pageSwipe() throws Exception {
+        // Supply scroll room when the tablet overview already fits the viewport.
+        js("var room=document.createElement('div');room.id='native-scroll-room';room.style.height=innerHeight+'px';document.body.appendChild(room);document.querySelector('#map').scrollIntoView({block:'center'});");Thread.sleep(300);
+        JSONArray bounds=new JSONArray(js("(function(){var r=document.querySelector('#map').getBoundingClientRect();return [r.left+r.width*0.55,r.top+r.height*0.5,devicePixelRatio];})()"));
+        float x=(float)bounds.getDouble(0),y=(float)bounds.getDouble(1),ratio=(float)bounds.getDouble(2);long down=SystemClock.uptimeMillis();
+        js("window.nativeBeforeScroll=scrollY;window.nativeBeforeMap=document.querySelector('#geography').getAttribute('transform');");
+        event(down,MotionEvent.ACTION_DOWN,new float[][]{{x*ratio,(y+50)*ratio}});
+        for(int i=1;i<=8;i++){event(down,MotionEvent.ACTION_MOVE,new float[][]{{x*ratio,(y+50-i*12.5f)*ratio}});Thread.sleep(45);}
+        event(down,MotionEvent.ACTION_UP,new float[][]{{x*ratio,(y-50)*ratio}});Thread.sleep(500);
+        dom("scrollY>window.nativeBeforeScroll+30","Native one-finger swipe scrolls the page past the map");
+        dom("document.querySelector('#geography').getAttribute('transform')===window.nativeBeforeMap","Native one-finger swipe leaves the map unchanged");
+        js("document.querySelector('#native-scroll-room').remove();");
+    }
     private void pinch() throws Exception {
         js("document.querySelector('#map').scrollIntoView({block:'center'});");Thread.sleep(300);
         JSONArray bounds=new JSONArray(js("(function(){var r=document.querySelector('#map').getBoundingClientRect();return [r.left+r.width*0.55,r.top+r.height*0.48,devicePixelRatio];})()"));
@@ -51,9 +64,21 @@ public final class OfflineTests extends Instrumentation {
         event(down,MotionEvent.ACTION_POINTER_DOWN|(1<<MotionEvent.ACTION_POINTER_INDEX_SHIFT),new float[][]{{(x-35)*ratio,y*ratio},{(x+35)*ratio,y*ratio}});
         for(int i=1;i<=8;i++){float distance=35+i*4;event(down,MotionEvent.ACTION_MOVE,new float[][]{{(x-distance)*ratio,y*ratio},{(x+distance)*ratio,y*ratio}});Thread.sleep(45);}
         event(down,MotionEvent.ACTION_POINTER_UP|(1<<MotionEvent.ACTION_POINTER_INDEX_SHIFT),new float[][]{{(x-67)*ratio,y*ratio},{(x+67)*ratio,y*ratio}});
-        event(down,MotionEvent.ACTION_UP,new float[][]{{(x-67)*ratio,y*ratio}});Thread.sleep(300);
+        js("window.nativeAfterPinch=document.querySelector('#geography').getAttribute('transform');");
+        event(down,MotionEvent.ACTION_MOVE,new float[][]{{(x-40)*ratio,(y-20)*ratio}});Thread.sleep(100);
+        dom("document.querySelector('#geography').getAttribute('transform')===window.nativeAfterPinch","Lifting one finger stops native map dragging");
+        event(down,MotionEvent.ACTION_UP,new float[][]{{(x-40)*ratio,(y-20)*ratio}});Thread.sleep(300);
         dom("document.querySelector('#geography').transform.baseVal.consolidate().matrix.a>1.3","Native two-finger pinch zooms the map");
         dom("Math.abs(visualViewport.scale-1)<0.01","Pinch does not zoom the page");
+        js("window.nativePanStart={scroll:scrollY,m:document.querySelector('#geography').transform.baseVal.consolidate().matrix};");
+        down=SystemClock.uptimeMillis();
+        event(down,MotionEvent.ACTION_DOWN,new float[][]{{(x-35)*ratio,y*ratio}});
+        event(down,MotionEvent.ACTION_POINTER_DOWN|(1<<MotionEvent.ACTION_POINTER_INDEX_SHIFT),new float[][]{{(x-35)*ratio,y*ratio},{(x+35)*ratio,y*ratio}});
+        for(int i=1;i<=8;i++){event(down,MotionEvent.ACTION_MOVE,new float[][]{{(x-35+i*3)*ratio,(y+i*2)*ratio},{(x+35+i*3)*ratio,(y+i*2)*ratio}});Thread.sleep(45);}
+        event(down,MotionEvent.ACTION_POINTER_UP|(1<<MotionEvent.ACTION_POINTER_INDEX_SHIFT),new float[][]{{(x-11)*ratio,(y+16)*ratio},{(x+59)*ratio,(y+16)*ratio}});
+        event(down,MotionEvent.ACTION_UP,new float[][]{{(x-11)*ratio,(y+16)*ratio}});Thread.sleep(300);
+        dom("(function(){var m=document.querySelector('#geography').transform.baseVal.consolidate().matrix,p=window.nativePanStart.m;return Math.abs(m.a-p.a)<0.01&&m.e>p.e+10&&m.f>p.f+10;})()","Native two-finger swipe pans the map without changing zoom");
+        dom("scrollY===window.nativePanStart.scroll","Native map gestures do not scroll the page");
     }
     @Override public void onStart() {
         Bundle result=new Bundle();
@@ -87,7 +112,7 @@ public final class OfflineTests extends Instrumentation {
             dom("document.querySelector('#timeline-date').textContent.indexOf('June 2026')>=0","Rotation retains the chosen history stop");
             dom("document.documentElement.scrollWidth<=innerWidth+1","Rotated layout fits screen");
             runOnMainSync(new Runnable(){@Override public void run(){activity.setRequestedOrientation(orientation==Configuration.ORIENTATION_PORTRAIT?ActivityInfo.SCREEN_ORIENTATION_PORTRAIT:ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);}});Thread.sleep(1200);
-            js("document.querySelector('[data-layer=districts]').click();document.querySelector('#clear').click();");pinch();
+            js("document.querySelector('[data-layer=districts]').click();document.querySelector('#clear').click();");pageSwipe();pinch();
             js("document.querySelector('#zoom-reset').click();document.querySelector('#about').click();");dom("document.querySelector('#sources-dialog').open","Source notes open");
             runOnMainSync(new Runnable(){@Override public void run(){activity.onBackPressed();}});Thread.sleep(300);dom("!document.querySelector('#sources-dialog').open","Android Back closes dialog");
             js("document.body.setAttribute('data-native-old-document','1');location.reload();");waitForMap();dom("JSON.parse(localStorage.getItem('ba-saved')).indexOf('fact-1')>=0","Saved progress survives native reload");

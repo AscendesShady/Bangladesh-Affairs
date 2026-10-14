@@ -144,7 +144,7 @@ function setLayer(layer){
   $$('[data-layer]').forEach(b=>{b.classList.toggle('active',b.dataset.layer===layer);b.setAttribute('aria-pressed',String(b.dataset.layer===layer));});
   $('#timeline-panel').hidden=layer!=='history';
   $('#rivers-toggle').checked=layer==='nature';d3.select('#river-paths').style('display',layer==='nature'?null:'none');
-  $('#map-note').textContent=layer==='gi'?'Badges count district study associations. GI production areas may span several districts. Country-wide products are listed without a single location.':layer==='communities'?'Selected community profiles. District associations are examples of presence, not exclusive territories or exact settlement locations.':layer==='nature'?'Markers show landscape study locations. Hazard notes are qualitative; this map is not a risk model or a live warning service.':layer==='history'?'Historical events and heritage anchors are highlighted on 2020 district boundaries. This is not a reconstruction of historical borders.':'Select a district or marker to explore. Move two fingers to pan; pinch to zoom. Trackpad scrolling pans; + / − zooms. BBS / OCHA boundaries, 2020, via geoBoundaries.';
+  $('#map-note').textContent=layer==='gi'?'Badges count district study associations. GI production areas may span several districts. Country-wide products are listed without a single location.':layer==='communities'?'Selected community profiles. District associations are examples of presence, not exclusive territories or exact settlement locations.':layer==='nature'?'Markers show landscape study locations. Hazard notes are qualitative; this map is not a risk model or a live warning service.':layer==='history'?'Historical events and heritage anchors are highlighted on 2020 district boundaries. This is not a reconstruction of historical borders.':'Swipe with one finger to scroll the page. Use two fingers to pan or pinch the map. Tap a district or marker to explore. BBS / OCHA boundaries, 2020, via geoBoundaries.';
   updateDistrictStyles();renderLegend();renderDirectory();renderMarkers();renderDetail();if(layer==='history')updateHistory(false);
 }
 function updateDistrictStyles(){
@@ -208,10 +208,21 @@ function initMap(){
   world.append('g').attr('aria-hidden','true').selectAll('text').data(geo.features).join('text').attr('class','district-label').text(d=>d.properties.name);
   const anchors=[['Rangpur',89.09,25.76],['Rajshahi',88.86,24.58],['Mymensingh',90.22,24.91],['Sylhet',91.66,24.80],['Dhaka',90.09,23.86],['Khulna',89.14,22.96],['Barishal',90.30,22.47],['Chattogram',91.91,23.01]].map(([name,x,y])=>({name,coords:[x,y]}));
   world.append('g').attr('aria-hidden','true').selectAll('text').data(anchors).join('text').attr('class','division-label').text(d=>d.name.toUpperCase());
-  // Bind touch handlers explicitly, including on hybrid computers whose device
-  // detection can omit them. D3 tracks both fingers for pinch and midpoint pan.
-  zoom=d3.zoom().touchable(()=>true).scaleExtent([1,9]).extent([[0,0],[850,640]]).translateExtent([[-150,-100],[1000,750]]).filter(e=>(e.type!=='wheel'||e.ctrlKey)&&(!e.button||e.type==='wheel')).on('zoom',e=>{state.transform=e.transform;world.attr('transform',e.transform);hideTooltip();syncSymbols();});
-  d3.select('#map').call(zoom).on('dblclick.zoom',null);
+  // A single finger belongs to the page. Start D3's touch gesture only when
+  // two fingers are on the map; retain its pinch, bounds and midpoint pan.
+  zoom=d3.zoom().touchable(()=>true).scaleExtent([1,9]).extent([[0,0],[850,640]]).translateExtent([[-150,-100],[1000,750]]).filter(e=>(e.type!=='touchstart'||e.touches.length>=2)&&(e.type!=='wheel'||e.ctrlKey)&&(!e.button||e.type==='wheel')).on('zoom',e=>{state.transform=e.transform;world.attr('transform',e.transform);hideTooltip();syncSymbols();});
+  const mapSelection=d3.select('#map').call(zoom).on('dblclick.zoom',null);
+  const touchStart=mapSelection.on('touchstart.zoom'),touchMove=mapSelection.on('touchmove.zoom');
+  mapSelection.on('touchstart.zoom',function(event,...args){
+    if(event.touches.length<2)return;
+    if(event.cancelable)event.preventDefault();
+    hideTooltip();touchStart.call(this,event,...args);
+  },{passive:false}).on('touchmove.zoom',function(event,...args){
+    if(event.touches.length>=2)return touchMove.call(this,event,...args);
+    // Lifting one finger must not turn a pinch into a one-finger map drag.
+    // D3's touchend/cancel handler still releases the gesture when it ends.
+    if(this.__zooming&&event.cancelable)event.preventDefault();
+  },{passive:false});
   // Trackpad two-finger scrolling arrives as ordinary wheel deltas; pinch
   // arrives as Ctrl+wheel and stays with D3's zoom handler above.
   $('#map').addEventListener('wheel',event=>{
