@@ -73,7 +73,7 @@ fs.writeFileSync(path.join(out,'assets/vendor/d3-LICENSE.txt'),credits.join('\n\
 assert.ok(!/\bfetch\(/.test(code),'No network data loader in the runtime');
 if(!web){assert.ok(!/serviceWorker|beforeinstallprompt|appinstalled/.test(code),'No PWA code in Android runtime');assert.ok(!/type="module"|manifest.webmanifest|id="install"/.test(html),'No web installation or module-loading dependency');}
 if(web){
- html=html.replace('data-release="1.1.1"','data-release="1.2.1"');fs.writeFileSync(path.join(out,'index.html'),html);
+ html=html.replace('data-release="1.1.1"','data-release="1.2.1"').replace(/[ \t]+$/gm,'');fs.writeFileSync(path.join(out,'index.html'),html);
  for(const file of ['manifest.webmanifest','assets/icons/icon-512.png']){const dest=path.join(out,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,file),dest);}
  const core=['./','./index.html','./assets/offline.js','./assets/style.css','./assets/glass.css','./assets/fonts/bangla.woff2','./assets/fonts/OFL.txt','./assets/icons/icon-192.png','./assets/icons/icon-512.png','./assets/vendor/d3-LICENSE.txt','./manifest.webmanifest','./sources/bangladesh-affairs-syllabus.png','./sources/geography-environment-syllabus.png'];
  const worker=read('sw.js').replace("const VERSION='v1.1.1';","const VERSION='v1.2.1';").replace(/const CORE=\[[\s\S]*?\];/,'const CORE='+JSON.stringify(core)+';');fs.writeFileSync(path.join(out,'sw.js'),worker);fs.writeFileSync(path.join(out,'.nojekyll'),'');
