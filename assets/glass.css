@@ -394,6 +394,13 @@ footer { background: transparent; border-top: 1px solid #d0ded2; color: #4a665a;
   button:active:not(:disabled), .timeline-controls input:active::-webkit-slider-thumb { transform: none; }
 }
 
+/* Use the district's shape for focus and selection, never its bounding box. */
+#map .district:focus { outline: none; stroke: #083d34; stroke-width: 3.5; }
+.district:focus-visible { stroke: #083d34; stroke-width: 3.5; }
+.place-type-control { display: flex; align-items: center; gap: 10px; padding: 0 16px 8px; font-size: 12px; color: var(--muted); }
+.place-type-control[hidden] { display: none; }
+.place-type-control select { flex: 1; min-width: 0; min-height: 44px; font-size: 14px; }
+
 /* Touch-first layout shared by a 6-inch phone and a large Android tablet. */
 body { font-size: 15px; background-attachment: scroll; }
 main { max-width: 1800px; padding: 0 20px 24px; }

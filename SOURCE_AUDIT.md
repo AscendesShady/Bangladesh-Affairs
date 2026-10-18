@@ -101,8 +101,17 @@ The Reload app control and `?repair=1` entry link refresh only this deployment's
 ## Publishing verification · 13 October 2026
 
 After the site was unpublished, the public HTML and script URLs returned HTTP 404 while GitHub still reported the previous branch build as successful. Publishing now uses the repository's `pages.yml` workflow: local-app checks gate deployment, staging includes only 26 public files plus `deployment.json`, which records the commit and SHA-256 hashes. The manual ZIP retains `.nojekyll`; Actions deploys an already-built static artifact and its upload action excludes dotfiles. `qa/live.cjs` checks public responses and byte hashes before testing the map, facts, recovery, saved progress and offline reload in fresh desktop and phone Chrome. A cached installed app cannot substitute for this direct network verification. The README now links to the exact case-sensitive project URL and the workflow that restores an unpublished site.
+## Historic places expansion · 18 October 2026
+
+The current places dataset contains **42 locations**: 32 historic/important places and 10 nature anchors. This supersedes the original 22-location count elsewhere in this audit. Twenty entries were added, while existing place IDs were retained. The Bagerhat entry now names Shat Gombuj Mosque explicitly as a principal monument of the wider Historic Mosque City, without adding a duplicate marker.
+
+The new set includes eight additional mosques, five parks/gardens, Lalbagh Fort, Ahsan Manzil, Kantajew Temple, Panam City, Puthia Rajbari, Tajhat Palace and Uttara Ganabhaban. Each record links to the reference actually used. Banglapedia supplies the architecture notes; Bangladesh Tourism Board supplies park, palace and destination references; Public Works Department supplies Ramna Park's urban-green-space context; Tourist Police supplies the Chandrima Udyan location reference. Source URLs are retained with individual records in `assets/data/places.json`.
+
+Notes are original concise summaries. Dates with conflicting readings, notably Atiya and Bagha, are described by period rather than given false precision. The Tourism Board handbook contains apparent date and Tajhat/Puthia copy errors; those statements were not copied. Tajhat uses the Board's dedicated Rangpur description instead. No current opening times, fees or access promises are asserted.
+
+Coordinates are rounded study anchors, cross-checked against public geographic references and the associated district polygon. They are not survey points or navigation instructions. The Wikipedia coordinate feed's Goaldi point falls outside the stated Sonargaon/Narayanganj association and was rejected; the indicative Sonargaon anchor was retained. `qa/heritage.cjs` checks the 20 added anchors against the normalized 2020 district polygons and verifies all new detail/source links in both deliverable builds.
 
 
-## Self-contained distribution · 14 October 2026
+## Self-contained distribution · 18 October 2026
 
-This distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.2.1. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.
+This distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.3.0. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.
