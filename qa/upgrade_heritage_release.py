@@ -14,7 +14,7 @@ replace('assets/style.css','.district:hover,.district:focus{fill:#aecbb5!importa
 replace('assets/style.css','.district.selected{fill:#155e50!important;stroke:#083d34;stroke-width:2.4}', '.district.selected{stroke:#083d34;stroke-width:3}')
 with (ROOT/'assets/glass.css').open('a',encoding='utf-8') as f:f.write('''
 /* Use the district's shape for focus and selection, never its bounding box. */
-#map .district:focus, #map .district:focus-visible { outline: none; }
+#map .district:focus { outline: none; stroke: #083d34; stroke-width: 3.5; }
 .district:focus-visible { stroke: #083d34; stroke-width: 3.5; }
 .place-type-control { display: flex; align-items: center; gap: 10px; padding: 0 16px 8px; font-size: 12px; color: var(--muted); }
 .place-type-control[hidden] { display: none; }
