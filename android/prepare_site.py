@@ -38,13 +38,13 @@ jobs:
 
 Push **all contents of this folder** to the repository root on `main`, including `.github/`. In GitHub **Settings → Pages**, select **GitHub Actions**. `index.html` must remain beside `assets/`, `sources/`, `manifest.webmanifest` and `sw.js`; do not upload this folder as a nested directory.
 
-The app includes 64 districts, 64 GI records, 20 community profiles, 22 places, 91 facts, 14 syllabus topics and 24 history stops. Map data and study content are embedded in one local script; there are no separate JSON downloads or remote runtime libraries. Chrome installation and offline caching remain supported. Touch controls and layouts adapt to phones and large tablets, including portrait and landscape.
+The app includes 64 districts, 64 GI records, 20 community profiles, 42 places, 91 facts, 14 syllabus topics and 24 history stops. Map data and study content are embedded in one local script; there are no separate JSON downloads or remote runtime libraries. Chrome installation and offline caching remain supported. Touch controls and layouts adapt to phones and large tablets, including portrait and landscape.
 
 Use HTTPS hosting or a local HTTP server to preview the web app. The standalone Android installer is a separate APK and runs without this site.
 
 Source notes: `SOURCE_AUDIT.md`. Licence: `LICENSE`, `assets/vendor/d3-LICENSE.txt`, `assets/fonts/OFL.txt`. No Android signing keys, native build tooling, test APKs, or research downloads are present in this public folder.
 ''',encoding='utf-8')
-(SITE/'SOURCE_AUDIT.md').write_text((ROOT/'SOURCE_AUDIT.md').read_text(encoding='utf-8')+'\n\n## Self-contained distribution · 14 October 2026\n\nThis distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.2.1. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.\n',encoding='utf-8')
+(SITE/'SOURCE_AUDIT.md').write_text((ROOT/'SOURCE_AUDIT.md').read_text(encoding='utf-8')+'\n\n## Self-contained distribution · 14 October 2026\n\nThis distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.3.0. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.\n',encoding='utf-8')
 css=SITE/'assets/glass.css'
 css.write_text(css.read_text(encoding='utf-8')+'''
 /* Web-only installation controls; the APK does not include these. */

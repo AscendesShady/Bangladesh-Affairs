@@ -13,9 +13,9 @@ with zipfile.ZipFile(apk) as z:
     for name in web:assert z.read(name)==(assets/name.removeprefix('assets/app/')).read_bytes(),name
 public=list((DELIVERY/'GitHub-Pages').rglob('*'))
 assert not any(p.is_file() and (p.suffix in ['.apk','.jks'] or p.name=='password.txt') for p in public)
-native=json.loads((ROOT/'.android-build/two-finger-native.json').read_text())
+native=json.loads((ROOT/'.android-build/heritage-native.json').read_text())
 assert all(p['conclusion']=='success' and p['offline'] for p in native)
-result={'rootItems':items,'apkVersion':'1.1','apkBytes':apk.stat().st_size,'apkSHA256':hashlib.sha256(apk.read_bytes()).hexdigest(),'singleAPK':True,'publicFiles':sum(p.is_file() for p in public),'gestureChecks':json.loads((ROOT/'.android-build/two-finger-results.json').read_text())['checks'],'nativeOfflineProfiles':[p['profile'] for p in native],'nativeChecksPerProfile':[33,34],'publicChecks':json.loads((ROOT/'.android-build/public-results.json').read_text())['checks'],'cachedUpgradeChecks':json.loads((ROOT/'.android-build/pages-update-results.json').read_text())['checks']}
+result={'rootItems':items,'apkVersion':'1.2','apkBytes':apk.stat().st_size,'apkSHA256':hashlib.sha256(apk.read_bytes()).hexdigest(),'singleAPK':True,'publicFiles':sum(p.is_file() for p in public),'gestureChecks':json.loads((ROOT/'.android-build/two-finger-results.json').read_text())['checks'],'nativeOfflineProfiles':[p['profile'] for p in native],'nativeChecksPerProfile':{p['profile']:[p['firstLaunchChecks'],p['coldRestartChecks']] for p in native},'heritageChecks':json.loads((ROOT/'.android-build/heritage-results.json').read_text())['checks'],'publicChecks':json.loads((ROOT/'.android-build/public-results.json').read_text())['checks'],'cachedUpgradeChecks':json.loads((ROOT/'.android-build/pages-update-results.json').read_text())['checks']}
 live=ROOT/'.android-build/live-pages-results.json'
 if live.exists():result['livePagesChecks']=json.loads(live.read_text())['checks']
 (ROOT/'DELIVERY-VERIFICATION.json').write_text(json.dumps(result,indent=2))

@@ -72,7 +72,11 @@ window.addEventListener('hashchange',()=>setTab(location.hash.slice(1),false));
 
 function divisionMatches(d){return !state.division||d.division===state.division;}
 function recordMatchesDivision(r){return !state.division||r.districts.some(n=>divisionMatches(districtByName.get(n)));}
-function matchesSearch(r){return !state.search||[r.name,r.bn,r.division,r.category,r.note,...(r.districts??[]),...(r.landmarks??[])].filter(Boolean).join(' ').toLowerCase().includes(state.search);}
+function matchesSearch(r){return !state.search||[r.name,r.bn,r.division,r.category,r.note,...(r.aliases??[]),...(r.districts??[]),...(r.landmarks??[])].filter(Boolean).join(' ').toLowerCase().includes(state.search);}
+function placeTypeMatches(record){
+  const type=$('#place-type').value;
+  return type==='all'||(type==='mosques'?record.category==='Mosque':type==='parks'?record.category==='Park & garden':type==='infrastructure'?record.kind==='Infrastructure':record.kind==='Heritage'&&!['Mosque','Park & garden'].includes(record.category));
+}
 function districtContent(d){
   const gis=data.gi.filter(g=>g.districts.includes(d.name));
   const communities=data.communities.filter(c=>c.districts.includes(d.name));
@@ -80,13 +84,13 @@ function districtContent(d){
   return `<article class="detail-card"><div class="detail-body"><span class="eyebrow">${esc(d.division.toUpperCase())} DIVISION · DISTRICT</span><h2>${esc(d.name)}</h2><div class="detail-bn" lang="bn">${esc(d.bn)}</div><p>${esc(d.note)}</p><div class="detail-section"><h4>Remember this place</h4><ul>${d.landmarks.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div><div class="detail-section"><h4>River connections</h4><p>${d.rivers.map(esc).join(' · ')}</p></div><div class="detail-section"><h4>GI study associations · ${gis.length}</h4>${gis.length?`<div class="tag-list">${gis.map(g=>`<button data-record="${g.id}" data-kind="gi">${esc(g.name)}</button>`).join('')}</div>`:'<p>No district association in this registry snapshot. This does not mean that the district has no local specialities.</p>'}</div>${communities.length?`<div class="detail-section"><h4>Community associations</h4><div class="tag-list">${communities.map(c=>`<button data-record="${c.id}" data-kind="communities">${esc(c.name)}</button>`).join('')}</div></div>`:''}${places.length?`<div class="detail-section"><h4>On the place map</h4><div class="tag-list">${places.map(p=>`<button data-record="${p.id}" data-kind="${p.kind==='Nature'?'nature':'places'}">${esc(p.name)}</button>`).join('')}</div></div>`:''}<div class="detail-section detail-actions"><button class="primary" data-district-facts="${esc(d.name)}">Related study facts →</button><button data-focus-district="${esc(d.name)}">Focus on map ↑</button></div></div><div class="source-link">${sourceLink(d.source,'District reference · Banglapedia')}</div></article>`;
 }
 function overviewContent(){
-  const copy={districts:['Start with a place','Tap a district on the map, or find it in the directory. Connect rivers and landmarks with products, people and history.'],gi:['Origin tells a story','Explore all 64 registrations in the saved DPDT registry. Badges count district study associations; country-wide products remain in the directory.'],communities:['People make the map','Explore 20 community profiles. Badges show broad district associations, not exclusive territories. This is a selected study set, not a complete census inventory.'],places:['Remember by location','Explore archaeological sites, memorials and transport connections. Select a marker to link a place with its story.'],nature:['Read the landscape','Explore forests, wetlands, terraces and coastlines. The notes connect landscapes with broad environmental and hazard themes, not measured risk or live warnings.']};
+  const copy={districts:['Start with a place','Tap a district on the map, or find it in the directory. Connect rivers and landmarks with products, people and history.'],gi:['Origin tells a story','Explore all 64 registrations in the saved DPDT registry. Badges count district study associations; country-wide products remain in the directory.'],communities:['People make the map','Explore 20 community profiles. Badges show broad district associations, not exclusive territories. This is a selected study set, not a complete census inventory.'],places:['Remember by location','Explore historic mosques, udyans, gardens, palaces, temples and transport connections. Choose a place type or search its name, then select a marker or directory entry.'],nature:['Read the landscape','Explore forests, wetlands, terraces and coastlines. The notes connect landscapes with broad environmental and hazard themes, not measured risk or live warnings.']};
   const [title,body]=copy[state.layer]??copy.districts;
   return `<article class="detail-card"><div class="overview-art" aria-hidden="true"><span>Places. People.<br>Connections.</span><div class="sun"></div></div><div class="detail-body"><span class="eyebrow">WELCOME TO BANGLADESH</span><h2>${title}</h2><p>${body}</p><div class="detail-metrics"><div><strong>64</strong><span>district profiles</span></div><div><strong>24</strong><span>history stops</span></div><div><strong>${FACTS.length}</strong><span>study cards</span></div><div><strong>14</strong><span>syllabus topics</span></div></div></div></article>`;
 }
 function recordContent(record){
   const isGi=state.layer==='gi',isCommunity=state.layer==='communities';
-  const headline=isGi?`GI REGISTRATION #${record.number}`:isCommunity?'COMMUNITY PROFILE':record.kind.toUpperCase();
+  const headline=isGi?`GI REGISTRATION #${record.number}`:isCommunity?'COMMUNITY PROFILE':(record.category??record.kind).toUpperCase();
   return `<article class="detail-card"><div class="detail-body"><span class="eyebrow">${esc(headline)}</span><h2>${esc(record.name)}</h2><div class="detail-bn" lang="bn">${esc(record.bn)}</div>${isGi?`<p>${esc(record.category)} · Registered in the DPDT list updated 16 June 2026.</p><div class="detail-section"><h4>Registry details</h4><p>Application: ${esc(record.application)}<br>Application date: ${esc(record.applicationDate)}<br>Registration number: ${record.number}</p><p>The date above is the application date, not the registration date.</p></div>`:`<p>${esc(record.note)}</p>`}<div class="detail-section"><h4>${isCommunity?'Examples of district presence':'Study location associations'}</h4>${record.districts.length?`<div class="tag-list">${record.districts.map(n=>`<button data-district="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:'<p>A country-wide product. No single district marker is assigned.</p>'}</div><div class="detail-section"><p>${isGi?esc(record.scope)+'. District associations are indicative and are not the legal production boundaries.':isCommunity?'Communities also live outside these districts. Cultural traditions vary among individuals and localities.':'Coordinates are indicative study locations, not navigation guidance.'}</p></div>${isGi?'<div class="detail-section"><p>GI protects a place-linked name or reputation. It is different from a general popularity claim and from UNESCO recognition.</p></div>':''}</div><div class="source-link">${sourceLink(record.source)}</div></article>`;
 }
 function historyContent(){
@@ -100,7 +104,7 @@ function renderDirectory(){
   let records;
   if(state.layer==='districts')records=data.districtInfo.filter(d=>divisionMatches(d)&&matchesSearch(d)).sort((a,b)=>a.name.localeCompare(b.name));
   else if(state.layer==='history')records=TIMELINE.map((e,i)=>({...e,id:i,name:e.title,bn:e.bn,index:i})).filter(e=>recordMatchesDivision(e)&&matchesSearch(e));
-  else records=(state.layer==='gi'?data.gi:state.layer==='communities'?data.communities:data.places.filter(p=>state.layer==='nature'?p.kind==='Nature':p.kind!=='Nature')).filter(r=>recordMatchesDivision(r)&&matchesSearch(r));
+  else records=(state.layer==='gi'?data.gi:state.layer==='communities'?data.communities:data.places.filter(p=>state.layer==='nature'?p.kind==='Nature':p.kind!=='Nature'&&placeTypeMatches(p))).filter(r=>recordMatchesDivision(r)&&matchesSearch(r));
   $('#directory-title').textContent=layerInfo[state.layer][2];$('#directory-count').textContent=records.length+' shown';$('#directory-empty').hidden=records.length>0;
   $('#directory').classList.toggle('history-list',state.layer==='history');
   $('#directory').innerHTML=records.map(r=>{
@@ -125,6 +129,7 @@ function selectRecord(id,kind){
   const records=kind==='gi'?data.gi:kind==='communities'?data.communities:data.places;
   const record=records.find(r=>r.id===id);if(!record)return;
   if(state.layer!==kind)setLayer(kind);
+  if(kind==='places'&&!placeTypeMatches(record))$('#place-type').value='all';
   state.record=record;state.district=null;renderDetail();renderDirectory();updateDistrictStyles();renderMarkers();
   if(record.districts.length)focusDistricts(record.districts);
   if(innerWidth<=700)$('#detail').scrollIntoView({block:'start',behavior:'instant'});
@@ -143,6 +148,7 @@ function setLayer(layer){
   const [kicker,title,,count]=layerInfo[layer];$('#layer-kicker').textContent=kicker;$('#map-title').textContent=title;$('#map-count').textContent=count;
   $$('[data-layer]').forEach(b=>{b.classList.toggle('active',b.dataset.layer===layer);b.setAttribute('aria-pressed',String(b.dataset.layer===layer));});
   $('#timeline-panel').hidden=layer!=='history';
+  $('#place-type-control').hidden=layer!=='places';
   $('#rivers-toggle').checked=layer==='nature';d3.select('#river-paths').style('display',layer==='nature'?null:'none');
   $('#map-note').textContent=layer==='gi'?'Badges count district study associations. GI production areas may span several districts. Country-wide products are listed without a single location.':layer==='communities'?'Selected community profiles. District associations are examples of presence, not exclusive territories or exact settlement locations.':layer==='nature'?'Markers show landscape study locations. Hazard notes are qualitative; this map is not a risk model or a live warning service.':layer==='history'?'Historical events and heritage anchors are highlighted on 2020 district boundaries. This is not a reconstruction of historical borders.':'Swipe with one finger to scroll the page. Use two fingers to pan or pinch the map. Tap a district or marker to explore. BBS / OCHA boundaries, 2020, via geoBoundaries.';
   updateDistrictStyles();renderLegend();renderDirectory();renderMarkers();renderDetail();if(layer==='history')updateHistory(false);
@@ -152,7 +158,7 @@ function updateDistrictStyles(){
   d3.selectAll('.district').classed('selected',d=>state.district===d.properties.name||state.layer!=='history'&&relevant.includes(d.properties.name)).classed('history-active',d=>state.layer==='history'&&relevant.includes(d.properties.name)).classed('dim',d=>!divisionMatches(districtByName.get(d.properties.name)));
 }
 function renderLegend(){
-  $('#map-legend').innerHTML=state.layer==='districts'?divisions.map(d=>`<span><i style="background:${colors[d]}"></i>${d}</span>`).join(''):state.layer==='gi'?'<span><i style="background:#bc7e32"></i>Badge = number of associated GI products</span><span>Country-wide entries remain in the directory</span>':state.layer==='communities'?'<span><i style="background:#90647b"></i>Badge = selected community associations</span>':state.layer==='history'?'<span><i style="background:#d56750"></i>Event or heritage association</span><span>2020 district boundaries</span>':'<span><i style="background:#277d76"></i>Landscape</span><span><i style="background:#d56750"></i>Heritage</span><span><i style="background:#bc7e32"></i>Infrastructure</span>';
+  $('#map-legend').innerHTML=state.layer==='districts'?divisions.map(d=>`<span><i style="background:${colors[d]}"></i>${d}</span>`).join(''):state.layer==='gi'?'<span><i style="background:#bc7e32"></i>Badge = number of associated GI products</span><span>Country-wide entries remain in the directory</span>':state.layer==='communities'?'<span><i style="background:#90647b"></i>Badge = selected community associations</span>':state.layer==='history'?'<span><i style="background:#d56750"></i>Event or heritage association</span><span>2020 district boundaries</span>':'<span><i style="background:#277d76"></i>Landscape / garden</span><span><i style="background:#d56750"></i>Heritage</span><span><i style="background:#bc7e32"></i>Infrastructure</span>';
 }
 function renderMarkers(){
   const group=d3.select('#markers');group.selectAll('*').remove();let points=[];
@@ -160,10 +166,11 @@ function renderMarkers(){
     const records=state.layer==='gi'?data.gi:data.communities;
     for(const d of data.districtInfo){const rs=records.filter(r=>r.districts.includes(d.name)&&matchesSearch(r));if(rs.length&&divisionMatches(d))points.push({id:d.id,name:d.name,coords:metricsByName.get(d.name).center,count:rs.length,color:state.layer==='gi'?'#b77b31':'#916780',district:d.name});}
   }else if(['places','nature'].includes(state.layer)){
-    points=data.places.filter(p=>(state.layer==='nature'?p.kind==='Nature':p.kind!=='Nature')&&recordMatchesDivision(p)&&matchesSearch(p)).map(p=>({...p,coords:projection(p.coords),color:p.kind==='Nature'?'#277d76':p.kind==='Heritage'?'#d56750':'#bc7e32'}));
+    points=data.places.filter(p=>(state.layer==='nature'?p.kind==='Nature':p.kind!=='Nature'&&placeTypeMatches(p))&&recordMatchesDivision(p)&&matchesSearch(p)).map(p=>({...p,coords:projection(p.coords),color:p.kind==='Nature'||p.category==='Park & garden'?'#277d76':p.kind==='Heritage'?'#d56750':'#bc7e32'}));
   }
   const marker=group.selectAll('g').data(points).join('g').attr('class','marker').attr('tabindex',0).attr('role','button').attr('aria-label',p=>p.count?`${p.name}: ${p.count} ${state.layer==='gi'?'GI products':'community associations'}`:p.name).classed('selected',p=>state.record?.id===p.id);
   marker.append('circle').attr('r',p=>p.count?11:8).attr('fill',p=>p.color);marker.filter(p=>p.count).append('text').attr('dy','.35em').text(p=>p.count);
+  marker.append('title').text(p=>p.name);
   marker.on('click',(e,p)=>{e.stopPropagation();p.district?selectDistrict(p.district):selectRecord(p.id,state.layer);}).on('keydown',(e,p)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();p.district?selectDistrict(p.district):selectRecord(p.id,state.layer);}}).on('pointermove',(e,p)=>showTooltip(e,p.count?`${p.name} · ${p.count} associations`:p.name)).on('pointerleave',hideTooltip);
   syncSymbols();
 }
@@ -194,6 +201,7 @@ function syncSymbols(){
 }
 function initMap(){
   geo=data.districts;
+  layerInfo.places[3]=data.places.filter(p=>p.kind!=='Nature').length+' historic & important places';
   // D3's spherical polygon winding is opposite GeoJSON's common RFC 7946 winding.
   for(const f of geo.features)if(d3.geoArea(f)>2*Math.PI){const polys=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;for(const p of polys)for(const ring of p)ring.reverse();}
   projection=d3.geoMercator().fitExtent([[105,35],[740,583]],geo);path=d3.geoPath(projection);
@@ -300,9 +308,10 @@ document.addEventListener('click',e=>{
 });
 $('#about').addEventListener('click',()=>openDialog('#sources-dialog'));
 $('#map-search').addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase();if(data){updateDistrictStyles();renderDirectory();renderMarkers();}});
+$('#place-type').addEventListener('change',()=>{if(data){state.record=null;state.district=null;updateDistrictStyles();renderDirectory();renderMarkers();renderDetail();}});
 $('#division').addEventListener('change',e=>{state.division=e.target.value;state.district=null;state.record=null;updateDistrictStyles();renderDirectory();renderMarkers();renderDetail();if(state.division)focusDistricts(data.districtInfo.filter(d=>d.division===state.division).map(d=>d.name));else applyTransform(d3.zoomIdentity);});
 $$('[data-layer]').forEach(b=>b.addEventListener('click',()=>{if(data)setLayer(b.dataset.layer);}));
-$('#clear').addEventListener('click',()=>{if(!data)return;stopPlay();state.search='';state.division='';state.record=null;state.district=null;$('#map-search').value='';$('#division').value='';applyTransform(d3.zoomIdentity);setLayer(state.layer);});
+$('#clear').addEventListener('click',()=>{if(!data)return;stopPlay();state.search='';state.division='';state.record=null;state.district=null;$('#place-type').value='all';$('#map-search').value='';$('#division').value='';applyTransform(d3.zoomIdentity);setLayer(state.layer);});
 
 function updateConnection(){const online=navigator.onLine;$('#connection').textContent=online?'● Online':'● Offline';if(!online)$('#offline-status').textContent='Offline · using saved app content';}
 window.addEventListener('online',updateConnection);window.addEventListener('offline',updateConnection);updateConnection();

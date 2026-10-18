@@ -20,7 +20,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#map-search').fill('ভোলা');check(await page.locator('.directory-item').count()===1,'Bangla GI search');
   await page.locator('#clear').click();await page.locator('[data-layer=communities]').click();check(await page.locator('.directory-item').count()===20,'20 communities');
   await page.locator('[data-record=community-11]').click();check((await page.locator('#detail').textContent()).includes('Matrilineal'),'Garo profile');
-  await page.locator('#clear').click();await page.locator('[data-layer=places]').click();check(await page.locator('.directory-item').count()===12,'12 heritage and infrastructure anchors');
+  await page.locator('#clear').click();await page.locator('[data-layer=places]').click();check(await page.locator('.directory-item').count()===32,'32 historic and infrastructure places');
   await page.locator('[data-layer=nature]').click();check(await page.locator('.directory-item').count()===10,'10 landscape anchors');check(await page.locator('#rivers-toggle').isChecked(),'Nature rivers enabled');check(await page.locator('.river').count()===9,'River geometry bundled');
   await page.locator('[data-layer=history]').click();const slider=page.locator('#timeline-slider');await slider.focus();await slider.press('Home');
   for(let i=0;i<TIMELINE.length;i++){check(await page.locator('#timeline-date').textContent()===TIMELINE[i].date,'History stop '+i);check(await page.locator('.history-active').count()===TIMELINE[i].districts.length,'Historic location highlights '+i);if(i<TIMELINE.length-1)await slider.press('ArrowRight');}

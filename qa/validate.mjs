@@ -14,7 +14,7 @@ for(const f of geo.features){check(names.has(f.properties.name),'Geometry join: 
 for(const d of districts)check(d.bn&&d.note&&d.rivers.length&&d.landmarks.length&&d.source,'Complete district profile: '+d.name);
 check(gi.length===64,'64 GI products');check(new Set(gi.map(g=>g.number)).size===64,'Unique registrations');
 for(const g of gi){check(g.number>=1&&g.number<=64&&g.bn&&g.applicationDate&&g.source,'GI provenance');for(const n of g.districts)check(names.has(n),'GI association: '+n);}
-check(communities.length===20,'20 community profiles');check(places.length===22,'22 places');
+check(communities.length===20,'20 community profiles');check(places.length===42,'42 places');
 for(const r of [...communities,...places,...FACTS,...TIMELINE]){for(const n of r.districts)check(names.has(n),'Association: '+n);check(r.source in SOURCES||/^https:\/\//.test(r.source),'Reference source');}
 for(const p of places)check(p.coords[0]>=88&&p.coords[0]<=93&&p.coords[1]>=20&&p.coords[1]<=27,'Bangladesh coordinates');
 check(TOPICS.length===14,'14 syllabus topics');check(TOPICS.filter(t=>t.group==='Bangladesh affairs').length===9,'9 affairs topics');
@@ -27,4 +27,4 @@ for(const file of core)check(file==='./'||existsSync(root+file.slice(2)), 'Offli
 const manifest=JSON.parse(readFileSync(root+'manifest.webmanifest','utf8'));check(manifest.scope==='./'&&manifest.start_url.startsWith('./'),'Project-relative PWA paths');check(manifest.display==='standalone','Standalone display');
 for(const icon of manifest.icons)check(existsSync(root+icon.src.slice(2)),'Icon exists');
 check(!/https:\/\/.*(?:src=|import)/.test(readFileSync(root+'index.html','utf8')),'No remote runtime assets');
-console.log(`${checks} static checks passed. 64 districts · 64 GI · 20 communities · 22 places · 91 facts · 24 events.`);
+console.log(`${checks} static checks passed. 64 districts · 64 GI · 20 communities · 42 places · 91 facts · 24 events.`);

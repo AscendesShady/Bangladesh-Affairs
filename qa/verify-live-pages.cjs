@@ -11,7 +11,7 @@ const root=path.resolve(__dirname,'..'),site=path.resolve(root,'../GitHub-Pages'
  try{
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base,{waitUntil:'networkidle'});await page.waitForSelector('.district');await page.waitForFunction(()=>navigator.serviceWorker.controller);
-  check(await page.locator('body').getAttribute('data-release')==='1.2.1','Live release is v1.2.1');
+  check(await page.locator('body').getAttribute('data-release')==='1.3.0','Live release is v1.3.0');
   check(await page.locator('.district').count()===64&&!await page.locator('#app-recovery').isVisible(),'Live map starts with 64 districts');
   const cdp=await context.newCDPSession(page),point=(x,y,id)=>({x,y,id,radiusX:8,radiusY:8,force:1});
   const send=(type,touchPoints)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints});
@@ -22,6 +22,13 @@ const root=path.resolve(__dirname,'..'),site=path.resolve(root,'../GitHub-Pages'
   await page.locator('#map').scrollIntoViewIfNeeded();r=await page.locator('#map').boundingBox();x=r.x+r.width*.6;y=r.y+r.height*.5;
   await send('touchStart',[point(x-40,y,0),point(x+40,y,1)]);for(let i=1;i<=8;i++)await send('touchMove',[point(x-40-i*5,y,0),point(x+40+i*5,y,1)]);await send('touchEnd',[]);
   check(await page.locator('#geography').evaluate(el=>el.transform.baseVal.consolidate().matrix.a>1.8),'Live two-finger pinch zooms the map');
+  await page.locator('[data-layer=places]').click();check(await page.locator('.directory-item').count()===32,'Live 32 historic and important places');
+  await page.locator('#place-type').selectOption('mosques');check(await page.locator('.marker').count()===9,'Live nine historic mosque markers');
+  await page.locator('#directory [data-record=place-22]').click();check(await page.locator('#detail h2').textContent()==='Bagha Mosque','Live historic mosque details');
+  await page.locator('#place-type').selectOption('parks');check(await page.locator('.marker').count()===5,'Live five park and garden markers');
+  await page.locator('#directory [data-record=place-30]').click();check(await page.locator('#detail h2').textContent()==='Suhrawardy Udyan','Live udyan details');
+  await page.locator('[data-layer=districts]').click();const dhaka=page.locator('.district[aria-label^="Dhaka district,"]');await dhaka.focus();await dhaka.press('Enter');
+  check(await dhaka.evaluate(e=>getComputedStyle(e).outlineStyle==='none'&&parseFloat(getComputedStyle(e).strokeWidth)>=3),'Live district selection has a border without a rectangular box');
   await page.locator('[data-tab=facts]').click();check(await page.locator('.fact-card').count()===91,'Live 91 facts');
   await context.setOffline(true);await page.reload({waitUntil:'networkidle'});await page.waitForSelector('.fact-card');check(await page.locator('.fact-card').count()===91,'Live release reloads offline');
   await page.locator('[data-tab=map]').click();check(await page.locator('.district').count()===64,'Live cached map offline');

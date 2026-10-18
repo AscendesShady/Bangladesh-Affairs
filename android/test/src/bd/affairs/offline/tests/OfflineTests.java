@@ -96,6 +96,9 @@ public final class OfflineTests extends Instrumentation {
             dom("document.querySelector('#map').getBoundingClientRect().top<310","Map appears early on screen");
             dom("innerWidth<768||innerHeight<500||(function(){var m=document.querySelector('.map-card').getBoundingClientRect(),r=document.querySelector('.explore-panel').getBoundingClientRect();return r.left>=m.right-2&&Math.abs(m.top-r.top)<2;})()","Tablet map and details use separate columns");
             js("document.querySelector('#directory [data-district=Dhaka]').click();");dom("document.querySelector('#detail h2').textContent==='Dhaka'","District detail opens");
+            js("var focusedDistrict=document.querySelector('.district[aria-label^=\"Dhaka district,\"]');focusedDistrict.focus();");
+            dom("getComputedStyle(focusedDistrict).outlineStyle==='none'&&parseFloat(getComputedStyle(focusedDistrict).strokeWidth)>=3","District focus uses its border without a rectangular box");
+            dom("getComputedStyle(focusedDistrict).fill==='rgb(192, 215, 176)'","Selected district retains its division colour");
             js("document.querySelector('[data-tab=facts]').click();");dom("document.querySelectorAll('.fact-card').length===91","91 facts render offline");
             js("var save=document.querySelector('[data-save=\"fact-1\"]');if(save.getAttribute('aria-pressed')!=='true')save.click();");dom("JSON.parse(localStorage.getItem('ba-saved')).indexOf('fact-1')>=0","Save card on device");
             js("document.querySelector('[data-tab=syllabus]').click();");dom("document.querySelectorAll('.syllabus-card').length===14","14 syllabus topics");
@@ -103,6 +106,11 @@ public final class OfflineTests extends Instrumentation {
             dom("document.fonts.check('16px AtlasBangla')","Bengali font bundled");
             js("document.querySelector('[data-tab=map]').click();document.querySelector('[data-layer=gi]').click();");dom("document.querySelectorAll('.directory-item').length===64","64 GI records offline");
             js("document.querySelector('[data-layer=communities]').click();");dom("document.querySelectorAll('.directory-item').length===20","20 community profiles offline");
+            js("document.querySelector('[data-layer=places]').click();document.querySelector('#clear').click();");dom("document.querySelectorAll('.directory-item').length===32","32 historic and important places offline");
+            js("var placeType=document.querySelector('#place-type');placeType.value='parks';placeType.dispatchEvent(new Event('change'));");dom("document.querySelectorAll('.directory-item').length===5&&document.querySelectorAll('.marker').length===5","Five udyans and gardens on the native map");
+            js("document.querySelector('#directory [data-record=\"place-30\"]').click();");dom("document.querySelector('#detail h2').textContent==='Suhrawardy Udyan'","Historic park detail opens offline");
+            js("placeType.value='mosques';placeType.dispatchEvent(new Event('change'));");dom("document.querySelectorAll('.directory-item').length===9&&document.querySelectorAll('.marker').length===9","Nine historic mosques on the native map");
+            js("document.querySelector('#directory [data-record=\"place-22\"]').click();");dom("document.querySelector('#detail h2').textContent==='Bagha Mosque'","Historic mosque detail opens offline");
             js("document.querySelector('[data-layer=history]').click();var s=document.querySelector('#timeline-slider');s.value=0;s.dispatchEvent(new Event('input',{bubbles:true}));");dom("document.querySelector('#timeline-date').textContent.indexOf('3rd century')>=0","First history stop");
             js("var s=document.querySelector('#timeline-slider');s.value=23;s.dispatchEvent(new Event('input',{bubbles:true}));");dom("document.querySelector('#timeline-date').textContent.indexOf('June 2026')>=0","Last history stop");
             js("document.body.setAttribute('data-orientation-proof','kept');");
