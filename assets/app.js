@@ -98,6 +98,7 @@ function historyContent(){
   return `<article class="detail-card"><div class="detail-body"><span class="eyebrow">${esc(e.era.toUpperCase())}</span><span class="history-date">${esc(e.date)}</span><h2>${esc(e.title)}</h2><div class="detail-bn" lang="bn">${esc(e.bn)}</div><p>${esc(e.body)}</p><div class="detail-section"><h4>Places on today's map</h4>${e.districts.length?`<div class="tag-list">${e.districts.map(n=>`<button data-district="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:'<p>This event has no single Bangladesh district anchor.</p>'}</div><div class="detail-section"><p>The highlighted places are event or heritage associations. They do not represent historic borders or political control.</p></div><div class="history-progress">Stop ${state.history+1} of ${TIMELINE.length} · Use the slider or arrow keys.</div></div><div class="source-link">${sourceLink(e.source)}</div></article>`;
 }
 function renderDetail(){
+  if(state.placeChoices){$('#detail').innerHTML=`<article class="detail-card"><div class="detail-body"><span class="eyebrow">EXPLORE THIS AREA</span><h2>Nearby places</h2><p>These locations are close together on the map. Choose one to see its history.</p>${state.placeChoices.map(p=>`<button class="directory-item" data-record="${p.id}" data-kind="places"><span><strong>${esc(p.name)}</strong><small lang="bn">${esc(p.bn)}</small></span><span aria-hidden="true">↗</span></button>`).join('')}</div></article>`;return;}
   $('#detail').innerHTML=state.record?recordContent(state.record):state.district?districtContent(districtByName.get(state.district)):state.layer==='history'?historyContent():overviewContent();
 }
 function renderDirectory(){
@@ -119,6 +120,7 @@ function renderDirectory(){
 }
 function selectDistrict(name,focus=false){
   if(!districtByName.has(name))return;
+  state.placeChoices=null;
   state.district=name;state.record=null;state.explored.add(name);storage.set('ba-explored',[...state.explored]);
   $('#explored-count').textContent=`${state.explored.size} / 64 districts explored`;
   renderDetail();renderDirectory();updateDistrictStyles();syncSymbols();
@@ -128,6 +130,7 @@ function selectDistrict(name,focus=false){
 function selectRecord(id,kind){
   const records=kind==='gi'?data.gi:kind==='communities'?data.communities:data.places;
   const record=records.find(r=>r.id===id);if(!record)return;
+  state.placeChoices=null;
   if(state.layer!==kind)setLayer(kind);
   if(kind==='places'&&!placeTypeMatches(record))$('#place-type').value='all';
   state.record=record;state.district=null;renderDetail();renderDirectory();updateDistrictStyles();renderMarkers();
@@ -144,6 +147,7 @@ function focusDistricts(names){
 function applyTransform(t){d3.select('#map').call(zoom.transform,t);}
 function setLayer(layer){
   if(!layerInfo[layer])return;
+  state.placeChoices=null;
   stopPlay();state.layer=layer;state.record=null;state.district=null;
   const [kicker,title,,count]=layerInfo[layer];$('#layer-kicker').textContent=kicker;$('#map-title').textContent=title;$('#map-count').textContent=count;
   $$('[data-layer]').forEach(b=>{b.classList.toggle('active',b.dataset.layer===layer);b.setAttribute('aria-pressed',String(b.dataset.layer===layer));});
@@ -171,7 +175,16 @@ function renderMarkers(){
   const marker=group.selectAll('g').data(points).join('g').attr('class','marker').attr('tabindex',0).attr('role','button').attr('aria-label',p=>p.count?`${p.name}: ${p.count} ${state.layer==='gi'?'GI products':'community associations'}`:p.name).classed('selected',p=>state.record?.id===p.id);
   marker.append('circle').attr('r',p=>p.count?11:8).attr('fill',p=>p.color);marker.filter(p=>p.count).append('text').attr('dy','.35em').text(p=>p.count);
   marker.append('title').text(p=>p.name);
-  marker.on('click',(e,p)=>{e.stopPropagation();p.district?selectDistrict(p.district):selectRecord(p.id,state.layer);}).on('keydown',(e,p)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();p.district?selectDistrict(p.district):selectRecord(p.id,state.layer);}}).on('pointermove',(e,p)=>showTooltip(e,p.count?`${p.name} · ${p.count} associations`:p.name)).on('pointerleave',hideTooltip);
+  const activate=p=>{
+    if(p.district)return selectDistrict(p.district);
+    if(state.layer==='places'){
+      const scale=Math.abs($('#map').getScreenCTM()?.a)||1;
+      const nearby=points.filter(other=>Math.hypot(other.coords[0]-p.coords[0],other.coords[1]-p.coords[1])*scale*state.transform.k<24);
+      if(nearby.length>1){state.placeChoices=nearby;state.record=null;state.district=null;renderDetail();updateDistrictStyles();hideTooltip();if(innerWidth<=700)$('#detail').scrollIntoView({block:'start',behavior:'instant'});return;}
+    }
+    selectRecord(p.id,state.layer);
+  };
+  marker.on('click',(e,p)=>{e.stopPropagation();activate(p);}).on('keydown',(e,p)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(p);}}).on('pointermove',(e,p)=>showTooltip(e,p.count?`${p.name} · ${p.count} associations`:p.name)).on('pointerleave',hideTooltip);
   syncSymbols();
 }
 function showTooltip(event,label){
@@ -307,9 +320,9 @@ document.addEventListener('click',e=>{
   if(b.dataset.action==='sources')openDialog('#sources-dialog');
 });
 $('#about').addEventListener('click',()=>openDialog('#sources-dialog'));
-$('#map-search').addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase();if(data){updateDistrictStyles();renderDirectory();renderMarkers();}});
-$('#place-type').addEventListener('change',()=>{if(data){state.record=null;state.district=null;updateDistrictStyles();renderDirectory();renderMarkers();renderDetail();}});
-$('#division').addEventListener('change',e=>{state.division=e.target.value;state.district=null;state.record=null;updateDistrictStyles();renderDirectory();renderMarkers();renderDetail();if(state.division)focusDistricts(data.districtInfo.filter(d=>d.division===state.division).map(d=>d.name));else applyTransform(d3.zoomIdentity);});
+$('#map-search').addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase();if(data){if(state.placeChoices){state.placeChoices=null;renderDetail();}updateDistrictStyles();renderDirectory();renderMarkers();}});
+$('#place-type').addEventListener('change',()=>{if(data){state.placeChoices=null;state.record=null;state.district=null;updateDistrictStyles();renderDirectory();renderMarkers();renderDetail();}});
+$('#division').addEventListener('change',e=>{state.division=e.target.value;state.placeChoices=null;state.district=null;state.record=null;updateDistrictStyles();renderDirectory();renderMarkers();renderDetail();if(state.division)focusDistricts(data.districtInfo.filter(d=>d.division===state.division).map(d=>d.name));else applyTransform(d3.zoomIdentity);});
 $$('[data-layer]').forEach(b=>b.addEventListener('click',()=>{if(data)setLayer(b.dataset.layer);}));
 $('#clear').addEventListener('click',()=>{if(!data)return;stopPlay();state.search='';state.division='';state.record=null;state.district=null;$('#place-type').value='all';$('#map-search').value='';$('#division').value='';applyTransform(d3.zoomIdentity);setLayer(state.layer);});
 

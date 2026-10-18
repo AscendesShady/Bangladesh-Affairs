@@ -44,7 +44,7 @@ Use HTTPS hosting or a local HTTP server to preview the web app. The standalone 
 
 Source notes: `SOURCE_AUDIT.md`. Licence: `LICENSE`, `assets/vendor/d3-LICENSE.txt`, `assets/fonts/OFL.txt`. No Android signing keys, native build tooling, test APKs, or research downloads are present in this public folder.
 ''',encoding='utf-8')
-(SITE/'SOURCE_AUDIT.md').write_text((ROOT/'SOURCE_AUDIT.md').read_text(encoding='utf-8')+'\n\n## Self-contained distribution · 14 October 2026\n\nThis distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.3.0. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.\n',encoding='utf-8')
+(SITE/'SOURCE_AUDIT.md').write_text((ROOT/'SOURCE_AUDIT.md').read_text(encoding='utf-8')+'\n\n## Self-contained distribution · 18 October 2026\n\nThis distribution embeds all six used map datasets and the original provenance metadata in its JavaScript bundle. It retains the original educational content and citations, uses a classic script instead of module imports, and precaches the complete shell as release v1.3.0. Promotional hero blocks are removed; touch controls are enlarged and tablet map/details panels share the available width.\n',encoding='utf-8')
 css=SITE/'assets/glass.css'
 css.write_text(css.read_text(encoding='utf-8')+'''
 /* Web-only installation controls; the APK does not include these. */
